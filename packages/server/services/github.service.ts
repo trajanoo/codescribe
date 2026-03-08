@@ -1,115 +1,186 @@
 import axios from "axios";
 
+const githubApi = axios.create({
+  baseURL: "https://api.github.com",
+  headers: {
+    Authorization: `Bearer ${process.env.GITHUB_API_TOKEN}`
+  }
+});
+
+// extrai nome e dono do repo 
 function extractRepoInfo(repoUrl: string) {
-    const parts = repoUrl.replace("https://github.com/", "").split("/");
+  const url = new URL(repoUrl);
+  const [owner, repoRaw] = url.pathname.split("/").filter(Boolean);
+
+  const repo = repoRaw?.replace(".git", "");
+
+  if (!owner || !repo) {
+    throw new Error("Invalid GitHub URL");
+  }
+
+  return { owner, repo };
+}
+
+async function getRepoMetadata(owner: string, repo: string) {
+  const res = await githubApi.get(`/repos/${owner}/${repo}`);
+  return res.data;
+}
+
+// extrai package.json
+
+async function getPackageJson(owner: string, repo: string) {
+  try {
+    const res = await githubApi.get(
+      `/repos/${owner}/${repo}/contents/package.json`
+    );
+
+    const decoded = Buffer.from(res.data.content, "base64").toString("utf-8");
+    const parsed = JSON.parse(decoded);
+
+    return parsed.dependencies || {};
+  } catch {
+    return {};
+  }
+}
+
+// extrai readme
+async function getReadme(owner: string, repo: string) {
+  try {
+    const res = await githubApi.get(`/repos/${owner}/${repo}/readme`);
+
+    return Buffer.from(res.data.content, "base64")
+      .toString("utf-8")
+      .slice(0, 2000);
+  } catch {
+    return "No README found.";
+  }
+}
+
+// extrai tree de arquivos
+async function getRepoTree(
+  owner: string,
+  repo: string,
+  branch: string
+) {
+  const res = await githubApi.get(
+    `/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`
+  );
+
+  if (res.data.truncated) {
+    throw new Error("Repository too large for MVP analysis.");
+  }
+
+  return res.data.tree;
+}
+
+// valida tipo do arquivo (apenas type, js e python) e descarta arquivos não uteis
+function isValidFile(file: any) {
+  return (
+    file.type === "blob" &&
+    (file.path.endsWith(".ts") ||
+      file.path.endsWith(".tsx") ||
+      file.path.endsWith(".js") ||
+      file.path.endsWith(".jsx") ||
+      file.path.endsWith(".py")) &&
+    !file.path.includes("node_modules") &&
+    !file.path.includes("dist") &&
+    !file.path.includes("build") &&
+    !file.path.includes(".next") &&
+    !file.path.includes("coverage") &&
+    !file.path.endsWith(".test.ts") &&
+    !file.path.endsWith(".spec.ts")
+  );
+}
+
+// heurística para favorecer arquivos principais e penalizar arquivos inuteis
+
+function scoreFile(path: string) {
+  let score = 0;
+
+  // páginas (Next / React)
+  if (path.includes("page.")) score += 60;
+
+  // rotas API
+  if (path.includes("route.") || path.includes("api/")) score += 50;
+
+  // controllers e services
+  if (path.includes("controller")) score += 40;
+  if (path.includes("service")) score += 30;
+
+  // componentes importantes
+  if (path.includes("component")) score += 20;
+
+  // arquivos principais
+  if (path.includes("app.") || path.includes("main.") || path.includes("index.")) {
+    score += 40;
+  }
+
+  // src geralmente contém lógica
+  if (path.startsWith("src/")) score += 20;
+
+  // penalizações
+  if (path.includes("config")) score -= 30;
+  if (path.includes("client")) score -= 20;
+  if (path.includes("types")) score -= 20;
+
+  return score;
+}
+
+function selectImportantFiles(tree: any[]) {
+  return tree
+    .filter(isValidFile)
+    .map((file) => ({
+      ...file,
+      score: scoreFile(file.path)
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5);
+}
+
+
+async function getFilesContent(
+  owner: string,
+  repo: string,
+  files: any[]
+) {
+  const requests = files.map((file) =>
+    githubApi.get(`/repos/${owner}/${repo}/contents/${file.path}`)
+  );
+
+  const responses = await Promise.all(requests);
+
+  return responses.map((res, index) => {
+    const decoded = Buffer.from(res.data.content, "base64").toString("utf-8");
+
     return {
-        owner: parts[0],
-        repo: parts[1]
-    }
+      path: files[index].path,
+      content: decoded.split("\n").slice(0, 120).join("\n")
+    };
+  });
 }
 
 export async function analyzeRepository(repoUrl: string) {
-    const { owner, repo } = extractRepoInfo(repoUrl);
+  const { owner, repo } = extractRepoInfo(repoUrl);
 
-    const headers = {
-        Authorization: `Bearer ${process.env.GITHUB_API_TOKEN}`
-    }
+  const metadata = await getRepoMetadata(owner, repo);
 
-    const repoRes = await axios.get(
-        `https://api.github.com/repos/${owner}/${repo}`,
-        { headers }
-    )
+  const defaultBranch = metadata.default_branch;
 
-    const defaultBranch = repoRes.data.default_branch;
+  const [readme, dependencies, tree] = await Promise.all([
+    getReadme(owner, repo),
+    getPackageJson(owner, repo),
+    getRepoTree(owner, repo, defaultBranch)
+  ]);
 
-    // GET README
-    let readmeContent = ""
-    try {
-        const readmeRes = await axios.get(
-            `https://api.github.com/repos/${owner}/${repo}/readme`,
-            { headers }
-        );
+  const importantFiles = selectImportantFiles(tree);
 
-        readmeContent = Buffer.from(
-            readmeRes.data.content,
-            "base64"
-        ).toString("utf-8");
-    } catch (e) {
-        readmeContent = "no readme found."
-    }
+  const files = await getFilesContent(owner, repo, importantFiles);
 
-    // GET REPO TREE
-    let treeRes = await axios.get(
-        `https://api.github.com/repos/${owner}/${repo}/git/trees/${defaultBranch}?recursive=1`,
-        { headers }
-    )
-
-    const tree = treeRes.data.tree;
-
-    function isValidFile(file: any) {
-        return (
-            file.type === "blob" &&
-            (
-                file.path.endsWith(".ts") ||
-                file.path.endsWith(".js") ||
-                file.path.endsWith(".py")
-            ) &&
-            !file.path.includes("node_modules") &&
-            !file.path.includes("dist") &&
-            !file.path.includes("build") &&
-            !file.path.includes(".next") &&
-            !file.path.includes("coverage") &&
-            !file.path.endsWith(".spec.ts") &&
-            !file.path.endsWith(".test.ts")
-        );
-    }
-
-    function scoreFile(path: string) {
-        let score = 0;
-
-        if (!path.includes("/")) score += 50;
-
-        if (path.startsWith("src/")) score += 30;
-
-        // app principal
-        if (path.includes("app.ts") || path.includes("main.ts") || path.includes("index.ts")) {
-            score += 40;
-        }
-
-        // penalizar config
-        if (path.includes("config")) score -= 10;
-
-        return score;
-    }
-
-    const files = tree
-        .filter(isValidFile)
-        .map(file => ({
-            ...file,
-            score: scoreFile(file.path)
-        }))
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 5);
-
-    let filesContent = "";
-
-    for (const file of files) {
-        const fileRes = await axios.get(
-            `https://api.github.com/repos/${owner}/${repo}/contents/${file.path}`,
-            { headers }
-        );
-
-        const content = Buffer.from(
-            fileRes.data.content,
-            "base64"
-        ).toString("utf-8");
-
-        filesContent += `\n\nFile: ${file.path}\n${content.slice(0, 1500)}`;
-    }
-
-    return {
-        repoName: repo,
-        readme: readmeContent.slice(0, 2000),
-        files: filesContent
-    };
+  return {
+    repoName: repo,
+    description: metadata.description,
+    readme,
+    dependencies,
+    files
+  };
 }
