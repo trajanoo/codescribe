@@ -15,8 +15,8 @@ export default function Navbar() {
   }, []);
 
   const links = [
-    { label: 'Features', href: '#features' },
     { label: 'How it works', href: '#how-it-works' },
+    { label: 'Features', href: '#features' },
     { label: 'For whom', href: '#audience' },
   ];
 
