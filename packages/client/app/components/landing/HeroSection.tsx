@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Github, Sparkles } from 'lucide-react';
 import { createPageUrl } from '@/utils/index';
+import { useRouter } from 'next/navigation';
+
 
 const codeLines = [
   { text: 'const project = await fetch(repoUrl);', color: 'text-blue-400' },
@@ -23,12 +25,16 @@ const outputLines = [
   '- 📊 Real-time analytics dashboard',
 ];
 
+
+
 export default function HeroSection() {
+  const router = useRouter();
   const [repoUrl, setRepoUrl] = useState('');
 
   const handleGenerate = () => {
-    if (!repoUrl.trim()) return;
-    window.location.href = createPageUrl('Project') + `?repo=${encodeURIComponent(repoUrl.trim())}`;
+    if(!repoUrl.trim()) return;
+
+    router.push(`/project?repo=${encodeURIComponent(repoUrl.trim())}`);
   };
 
   return (
@@ -100,13 +106,13 @@ export default function HeroSection() {
                  placeholder="Paste your GitHub repository URL..."
                  className="flex-1 bg-transparent text-white placeholder:text-white/30 outline-none text-sm py-2"
                 />
-                <button
-                 onClick={handleGenerate}
-                 className="group flex items-center gap-2 px-6 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-medium text-sm transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/25"
-                >
-                 Generate
-                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
-                </button>
+                  <button
+                   onClick={handleGenerate}
+                   className="group flex items-center gap-2 px-6 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-medium text-sm transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/25"
+                  >
+                   Generate
+                   <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+                  </button>
               </div>
             </div>
 
@@ -123,8 +129,7 @@ export default function HeroSection() {
           </motion.div>
         </div>
 
-        {/* Code mockup */}
-        <motion.div
+         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.5 }}
@@ -180,6 +185,8 @@ export default function HeroSection() {
             </div>
           </div>
         </motion.div>
+
+        
       </div>
     </section>
   );

@@ -17,7 +17,7 @@ router.post("/generatePost", async (req: Request, res: Response) => {
         const repoData = await analyzeRepository(repoUrl);
         const post = await generatePost(repoData);
 
-        res.json({ post });
+        res.json({ content: post });
         
     } catch(e) {
         res.status(500).json({ error: e })
@@ -35,7 +35,7 @@ router.post("/generateREADME", async (req: Request, res: Response) => {
         const repoData = await analyzeRepository(repoUrl);
         const readme = await generateREADME(repoData);
 
-        res.json({ readme });
+        res.json({ content: readme });
 
     } catch(e) {
         res.status(500).json({ error: e });

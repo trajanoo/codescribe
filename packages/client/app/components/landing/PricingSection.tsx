@@ -24,7 +24,7 @@ const plans = [
   {
     icon: Sparkles,
     name: 'Pro',
-    price: { monthly: 12, yearly: 9 },
+    price: { monthly: 10, yearly: 7 },
     description: 'For developers who ship regularly.',
     cta: 'Start Pro',
     ctaStyle: 'bg-violet-600 hover:bg-violet-500 text-white shadow-lg shadow-violet-500/20',
