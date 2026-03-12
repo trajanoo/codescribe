@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Github, Sparkles } from 'lucide-react';
-import { createPageUrl } from '@/utils/index';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 
 const codeLines = [
@@ -31,8 +31,15 @@ export default function HeroSection() {
   const router = useRouter();
   const [repoUrl, setRepoUrl] = useState('');
 
-  const handleGenerate = () => {
-    if(!repoUrl.trim()) return;
+  const handleGenerate = async () => {
+    if (!repoUrl.trim()) return;
+
+    const { data } = await supabase.auth.getUser();
+
+    if (!data.user) {
+      router.push('/auth');
+      return;
+    }
 
     router.push(`/project?repo=${encodeURIComponent(repoUrl.trim())}`);
   };
@@ -102,12 +109,17 @@ export default function HeroSection() {
                  type="text"
                  value={repoUrl}
                  onChange={(e) => setRepoUrl(e.target.value)}
-                 onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
+                 onKeyDown={(e) => {
+                   if (e.key === 'Enter') {
+                     e.preventDefault();
+                     void handleGenerate();
+                   }
+                 }}
                  placeholder="Paste your GitHub repository URL..."
                  className="flex-1 bg-transparent text-white placeholder:text-white/30 outline-none text-sm py-2"
                 />
                   <button
-                   onClick={handleGenerate}
+                   onClick={() => void handleGenerate()}
                    className="group flex items-center gap-2 px-6 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-medium text-sm transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/25"
                   >
                    Generate

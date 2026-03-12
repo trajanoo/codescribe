@@ -1,5 +1,4 @@
 'use client'
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPageUrl } from '@/utils';
@@ -9,6 +8,8 @@ import {
 } from 'lucide-react';
 import RecentProjects from '../components/project/RecentProjects';
 import { useSearchParams } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
 
 type Tab = 'linkedin' | 'readme';
 
@@ -58,12 +59,13 @@ const LENGTHS: Length[] = [
 ];
 
 export default function Project() {
-
+  const router = useRouter();
   const searchParams = useSearchParams();
   const repoUrl = searchParams.get("repo") || '';
 
   const [activeTab, setActiveTab] = useState<Tab>('linkedin');
   const [linkedinPost, setLinkedinPost] = useState('');
+  const [user, setUser] = useState<any>(null);
   const [readme, setReadme] = useState('');
   const [loadingTab, setLoadingTab] = useState<Tab | null>(null);
   const [copied, setCopied] = useState(false);
@@ -72,7 +74,19 @@ export default function Project() {
   const [showToneDropdown, setShowToneDropdown] = useState(false);
   const [showLengthDropdown, setShowLengthDropdown] = useState(false);
 
+  useEffect(() => {
+    async function getUser() {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+    }
+
+    getUser();
+  }, []);
   const generateTab = async (tab: Tab) => {
+    if (!user) {
+      return;
+    }
+
     if(!repoUrl) return;
     setLoadingTab(tab);
 
@@ -111,8 +125,8 @@ export default function Project() {
   };
 
   useEffect(() => {
-    if (repoUrl) generateTab('linkedin');
-  }, [repoUrl]);
+    if (repoUrl && user) generateTab('linkedin');
+  }, [repoUrl, user]);
 
   async function generateLinkedinPost(data: GenerateLinkedinRequest): Promise<GenerateResponse> {
     const res = await fetch('http://localhost:3001/api/generatePost', {
@@ -194,9 +208,6 @@ export default function Project() {
             </a>
             <div className="h-4 w-px bg-white/10" />
             <a href="/" className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center">
-                <Code2 className="w-3.5 h-3.5 text-white" />
-              </div>
               <span className="text-white/80 font-medium text-sm">codescribe<span className="text-violet-400">.io</span></span>
             </a>
           </div>

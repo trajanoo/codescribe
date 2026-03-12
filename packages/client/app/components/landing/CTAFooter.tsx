@@ -1,10 +1,24 @@
- 'use client';
+'use client';
 
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Code2, Github, Twitter } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 export default function CTAFooter() {
+  const router = useRouter();
+
+  const handleStartForFree = async () => {
+    const { data } = await supabase.auth.getUser();
+
+    if (!data.user) {
+      router.push('/auth');
+      return;
+    }
+
+    router.push('/dashboard');
+  };
   return (
     <>
       {/* CTA Section */}
@@ -41,13 +55,14 @@ export default function CTAFooter() {
             </p>
 
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a
-                href="#"
+              <button
+                type="button"
+                onClick={handleStartForFree}
                 className="group flex items-center gap-2.5 px-8 py-4 rounded-full bg-violet-600 hover:bg-violet-500 text-white font-medium text-lg transition-all duration-300 hover:shadow-2xl hover:shadow-violet-500/25 hover:scale-[1.02]"
               >
                 Start for free
                 <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-0.5" />
-              </a>
+              </button>
             </div>
 
             <p className="mt-6 text-xs text-white/20">
