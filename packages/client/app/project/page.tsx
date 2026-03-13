@@ -99,23 +99,25 @@ export default function Project() {
             });
 
             setLinkedinPost(result.content);
+
+            await saveProject({
+              repoUrl,
+              repoName,
+              linkedinPost: result.content
+            })
         }
 
         if(tab === 'readme') {
             const result = await generateReadme({repoUrl});
-            setReadme(result.content)
+            setReadme(result.content);
+
+            await saveProject({
+              repoUrl,
+              repoName,
+              readme: result.content
+            });
+
         }
-
-        const raw = JSON.parse(localStorage.getItem('recent_repos') || '[]');
-
-        const normalized = raw.map((item: any) => typeof item === 'string' ? { url: item, addedAt: Date.now() } : item);
-
-        const updated = [
-            { url: repoUrl, addedAt: Date.now() },
-            ...normalized.filter((p: RecentRepo) => p.url !== repoUrl),
-        ].slice(0, 20);
-
-        localStorage.setItem('recent_repos', JSON.stringify(updated));
     
     } catch(error) {
         console.error(error);
@@ -125,7 +127,17 @@ export default function Project() {
   };
 
   useEffect(() => {
-    if (repoUrl && user) generateTab('linkedin');
+    if (!repoUrl && !user) return;
+
+    async function init() {
+      const exists = await loadProject(repoUrl);
+
+      if(!exists) {
+        generateTab("linkedin");
+      }
+    }
+
+    init()
   }, [repoUrl, user]);
 
   async function generateLinkedinPost(data: GenerateLinkedinRequest): Promise<GenerateResponse> {
@@ -142,6 +154,28 @@ export default function Project() {
     return res.json();
   }
 
+  async function loadProject(repoUrl: string) {
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData.user;
+    
+    if(!user) return;
+
+    const { data } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('repo_url', repoUrl)
+      .single();
+
+      if(data) {
+        setLinkedinPost(data.linkedin_post || '');
+        setReadme(data.readme || '');
+        return true;
+      }
+
+      return false;
+  }
+
   async function generateReadme(data: GenerateReadmeRequest): Promise<GenerateResponse> {
     const res = await fetch('http://localhost:3001/api/generateREADME', {
         method: 'POST',
@@ -154,6 +188,25 @@ export default function Project() {
     }
 
     return res.json();
+  }
+
+  async function saveProject(data: { repoUrl: string; repoName: string; linkedinPost?: string; readme?: string }) {
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData.user;
+
+    if(!user) return;
+
+    await supabase
+      .from("projects")
+      .upsert({
+        user_id: user.id,
+        repo_url: data.repoUrl,
+        repo_name: data.repoName,
+        linkedin_post: data.linkedinPost,
+        readme: data.readme
+      }, {
+        onConflict: "user_id,repo_url"
+      });
   }
 
   const handleCopy = () => {
@@ -181,7 +234,6 @@ export default function Project() {
 
   const handleTabChange = (tab: Tab) => {
     setActiveTab(tab);
-    // Auto-generate if not yet generated for this tab
     if (tab === 'linkedin' && !linkedinPost && loadingTab !== 'linkedin') generateTab('linkedin');
     if (tab === 'readme' && !readme && loadingTab !== 'readme') generateTab('readme');
   };
@@ -302,7 +354,6 @@ export default function Project() {
 
             <RecentProjects currentRepo={repoUrl} />
 
-            {/* Actions card */}
             {currentContent && (
               <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5 space-y-3">
                 <h3 className="text-white/60 text-xs font-semibold uppercase tracking-widest">Actions</h3>
