@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Clock, ExternalLink } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { supabase } from '@/lib/supabase';
+import Link from 'next/link';
 
 interface Project {
   repo_url: string;
@@ -52,9 +53,12 @@ export default function RecentProjects({ currentRepo }: { currentRepo?: string }
           Recent Projects
         </h3>
 
-        <a href={createPageUrl('Dashboard')} className="text-xs text-violet-400/70 hover:text-violet-400 transition-colors">
-          View all
-        </a>
+        <Link
+  href="/dashboard"
+  className="text-xs text-violet-400/70 hover:text-violet-400 transition-colors"
+>
+  View all
+</Link>
       </div>
 
       <div className="space-y-1">
