@@ -95,9 +95,6 @@ export default function Dashboard() {
                         </a>
                         <div className="h-4 w-px bg-white/10" />
                         <a href={createPageUrl('Home')} className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center">
-                                <Code2 className="w-3.5 h-3.5 text-white" />
-                            </div>
                             <span className="text-white/80 font-medium text-sm">codescribe<span className="text-violet-400">.io</span></span>
                         </a>
                     </div>

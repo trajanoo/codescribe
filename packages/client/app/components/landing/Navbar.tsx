@@ -3,10 +3,27 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
+import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
+  const [user, setUser] = useState<any>(null)
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    async function getUser() {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+    }
+
+    getUser();
+  }, []);
+
+  const getInitial = (email?: string) => {
+    if(!email) return "?"
+    return email.charAt(0).toUpperCase();
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -48,12 +65,14 @@ export default function Navbar() {
               {link.label}
             </a>
           ))}
-          <a
-            href="#cta"
-            className="text-sm font-medium px-5 py-2 rounded-full bg-violet-600 hover:bg-violet-500 text-white transition-all duration-200 hover:shadow-lg hover:shadow-violet-500/25"
-          >
-            Get Started
-          </a>
+          <Link href={ user ? "/dashboard" : "/auth" } className="block text-center text-sm font-medium px-5 py-2.5 rounded-full bg-violet-600 text-white">
+              { user ? "My Workspace" : "Get Started" }
+              
+          </Link>
+          {user && (
+  <div className="flex items-center gap-3">
+  </div>
+)}
         </div>
 
         <button
