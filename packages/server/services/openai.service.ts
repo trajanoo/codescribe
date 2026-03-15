@@ -5,7 +5,7 @@ const client = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
 })
 
-export async function generatePost(repoData: RepoAnalysis): Promise<string> {
+export async function generatePost(repoData: RepoAnalysis, tone: string = 'Professional', length: string = 'Medium (250 words)' ): Promise<string> {
 
     const dependencies = Object.keys(repoData.dependencies)
         .slice(0, 10)
@@ -14,6 +14,16 @@ export async function generatePost(repoData: RepoAnalysis): Promise<string> {
     const files = repoData.files
         .map(file => `File: ${file.path}\n${file.content}`)
         .join("\n\n");
+
+    const wordCount = length.match(/\d+/)?.[0] || '250';
+
+    const toneInstructions: Record<string, string> = {
+        Professional: 'Write in a formal, polished tone suited for business professionals.',
+        Casual: 'Write in a relaxed, friendly tone — like talking to a colleague.',
+        Excited: 'Write with high energy and enthusiasm, using exclamation points sparingly.',
+        Storytelling: 'Tell a story — start with a challenge or context, build up to the solution.',
+        Technical: 'Emphasize technical details, stack choices, and architecture decisions.',
+    };
 
     const prompt = `You are a professional LinkedIn ghostwriter for software developers.
 
@@ -32,14 +42,14 @@ export async function generatePost(repoData: RepoAnalysis): Promise<string> {
     ${files}
     
     Rules:
+    - Tone: ${toneInstructions[tone] || toneInstructions['Professional']}
     - Start with a strong hook
     - Use short paragraphs
     - Explain what the project does
     - Mention technologies if identifiable
     - End with a call-to-action
-    - Keep it professional but engaging
-    - Max 250 words
-    `
+    - Keep it around ${wordCount} words - no more ${wordCount} words
+    `;
 
     const response = await client.responses.create({
         input: prompt,
@@ -124,6 +134,7 @@ Use MIT License unless otherwise specified.
 
 Rules:
 
+- Always end the file with 'Generated with Codescribe™'
 - Write in clear, professional developer English
 - Be concise but informative
 - Infer functionality from code when possible

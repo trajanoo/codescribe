@@ -127,7 +127,7 @@ export default function Dashboard() {
                         />
                         <button
                             onClick={handleNew}
-                            className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-all"
+                            className="flex cursor-pointer items-center gap-1.5 px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-all"
                         >
                             <Plus className="w-3.5 h-3.5" />
                             Generate

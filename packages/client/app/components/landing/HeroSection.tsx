@@ -120,7 +120,7 @@ export default function HeroSection() {
                 />
                   <button
                    onClick={() => void handleGenerate()}
-                   className="group flex items-center gap-2 px-6 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-medium text-sm transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/25"
+                   className="group cursor-pointer flex items-center gap-2 px-6 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-medium text-sm transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/25"
                   >
                    Generate
                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />

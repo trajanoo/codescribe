@@ -25,6 +25,11 @@ type Length =
   | 'Medium (250 words)'
   | 'Long (400 words)';
 
+type Language =
+  | 'English'
+  | 'Portuguese'
+  | 'Spanish';
+
 interface GenerateLinkedinRequest {
   repoUrl: string;
   tone: Tone;

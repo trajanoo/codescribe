@@ -8,14 +8,14 @@ const router = Router();
 
 router.post("/generatePost", async (req: Request, res: Response) => {
     try {
-        const { repoUrl } = req.body
+        const { repoUrl, tone, length } = req.body
 
         if (!repoUrl) {
             return res.status(400).json({ error: "repoUrl is required" });
           }
 
         const repoData = await analyzeRepository(repoUrl);
-        const post = await generatePost(repoData);
+        const post = await generatePost(repoData, tone, length);
 
         res.json({ content: post });
         

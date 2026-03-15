@@ -67,7 +67,6 @@ export default function Navbar() {
           ))}
           <Link href={ user ? "/dashboard" : "/auth" } className="block text-center text-sm font-medium px-5 py-2.5 rounded-full bg-violet-600 text-white">
               { user ? "My Workspace" : "Get Started" }
-              
           </Link>
           {user && (
   <div className="flex items-center gap-3">

@@ -182,9 +182,9 @@ export default function Auth() {
               className="group relative w-full h-14 rounded-2xl overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-violet-600/10 via-blue-600/10 to-violet-600/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="absolute inset-[1px] bg-[#0a0a1a] rounded-2xl flex items-center justify-center gap-3">
+              <div className="absolute cursor-pointer inset-px bg-[#0a0a1a] rounded-2xl flex items-center justify-center gap-3">
                 <Github className="w-5 h-5 text-white" />
-                <span className="text-white font-medium">Continue with GitHub</span>
+                <span className="text-white cursor-pointer font-medium">Continue with GitHub</span>
               </div>
               <div className="absolute inset-0 border border-white/10 group-hover:border-white/20 rounded-2xl transition-colors" />
             </motion.button>
@@ -273,8 +273,8 @@ export default function Auth() {
                 type="submit"
                 className="relative w-full h-12 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 text-white font-medium overflow-hidden group mt-8"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <span className="relative flex items-center justify-center gap-2">
+                <div className="absolute cursor-pointer inset-0 bg-gradient-to-r from-violet-500 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <span className="relative cursor-pointer flex items-center justify-center gap-2">
                   {isLogin ? 'Sign In' : 'Create Account'}
                 </span>
               </motion.button>
@@ -284,10 +284,10 @@ export default function Auth() {
             <div className="text-center">
               <button
                 onClick={() => setIsLogin(!isLogin)}
-                className="text-sm text-white/40 hover:text-white transition-colors"
+                className="text-sm text-white/40"
               >
                 {isLogin ? "Don't have an account? " : 'Already have an account? '}
-                <span className="text-violet-400 font-medium">
+                <span className="text-violet-400 font-medium hover:text-violet-200 cursor-pointer transition-colors">
                   {isLogin ? 'Sign up' : 'Log in'}
                 </span>
               </button>
