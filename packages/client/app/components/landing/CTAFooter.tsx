@@ -50,7 +50,7 @@ export default function CTAFooter() {
             </h2>
 
             <p className="mt-6 text-lg text-white/35 max-w-lg mx-auto font-light leading-relaxed">
-              Paste a GitHub link. Get a README and LinkedIn post. 
+              Paste a GitHub link. Get a post.
               It's that simple.
             </p>
 
@@ -65,9 +65,7 @@ export default function CTAFooter() {
               </button>
             </div>
 
-            <p className="mt-6 text-xs text-white/20">
-              Join 2,000+ developers already using codescribe.io
-            </p>
+
           </motion.div>
         </div>
       </section>

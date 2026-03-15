@@ -7,6 +7,7 @@ import { createPageUrl } from '@/utils';
 import { supabase } from '@/lib/supabase';
 import { Timestamp } from 'next/dist/server/lib/cache-handlers/types';
 import { sup } from 'framer-motion/client';
+import { toast } from 'sonner';
 
 interface Project {
     repo_url: string
@@ -24,6 +25,10 @@ const formatDate = (date: string) => {
         year: 'numeric'
     })  
 };
+
+function isValidGithubRepo(url: string) {
+    return /^https:\/\/github\.com\/[^\/]+\/[^\/]+\/?$/.test(url);
+}
 
 export default function Dashboard() {
     const [projects, setProjects] = useState<Project[]>([]);
@@ -75,6 +80,10 @@ export default function Dashboard() {
 
     const handleNew = () => {
         if (!newUrl.trim()) return;
+        if(!isValidGithubRepo(newUrl)) {
+            toast.error('Please enter a valid GitHub repository URL.');
+            return;
+        }
         window.location.href = createPageUrl('Project') + `?repo=${encodeURIComponent(newUrl.trim())}`;
     };
 

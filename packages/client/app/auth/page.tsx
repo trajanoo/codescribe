@@ -3,9 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Code2, Github, ArrowRight, Sparkles } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 export default function Auth() {
     const [isLogin, setIsLogin] = useState<boolean>(true);
+    const [error, setError] = useState<boolean>(false);
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [focusedField, setFocusedField] = useState<'email' | 'password' | null>(null);
@@ -30,6 +32,7 @@ export default function Auth() {
         
           if (error) {
             console.error(error.message);
+            setError(true);
             return;
           }
         
@@ -47,7 +50,7 @@ export default function Auth() {
             return
         }
 
-        alert("Check your email to confirm your account.");
+        toast.success('Account created! Please check your email to confirm your account.')
     }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -264,6 +267,10 @@ export default function Auth() {
                       )}
                     </div>
                   </div>
+
+                  { error ? (
+                    <div>Invalid email or password.</div>
+                  ) : null }
                 </motion.div>
               </AnimatePresence>
 

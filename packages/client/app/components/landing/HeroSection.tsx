@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Github, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 
 const codeLines = [
@@ -25,7 +26,9 @@ const outputLines = [
   '- 📊 Real-time analytics dashboard',
 ];
 
-
+function isValidGithubRepo(url: string) {
+  return /^https:\/\/github\.com\/[^\/]+\/[^\/]+\/?$/.test(url);
+}
 
 export default function HeroSection() {
   const router = useRouter();
@@ -41,6 +44,11 @@ export default function HeroSection() {
       return;
     }
 
+    if(!isValidGithubRepo(repoUrl)) {
+      toast.error('Please enter a valid GitHub repository URL.');
+      return;
+    }
+    
     router.push(`/project?repo=${encodeURIComponent(repoUrl.trim())}`);
   };
 
@@ -136,7 +144,7 @@ export default function HeroSection() {
                 See how it works
               </a>
               <span className="hidden sm:block text-white/20">•</span>
-              <span className="text-sm text-white/20">No signup required</span>
+              <span className="text-sm text-white/20">Try it for free</span>
             </div>
           </motion.div>
         </div>
