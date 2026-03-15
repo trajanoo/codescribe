@@ -28,12 +28,15 @@ type Length =
 type Language =
   | 'English'
   | 'Portuguese'
-  | 'Spanish';
+  | 'Spanish'
+  | 'French'
+  | 'German';
 
 interface GenerateLinkedinRequest {
   repoUrl: string;
   tone: Tone;
   length: Length;
+  language: Language;
 }
 
 interface GenerateReadmeRequest {
@@ -63,6 +66,14 @@ const LENGTHS: Length[] = [
   'Long (400 words)',
 ];
 
+const LANGUAGES: Language[] = [
+  'English',
+  'Portuguese',
+  'Spanish',
+  'French',
+  'German'
+];
+
 export default function Project() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -70,6 +81,8 @@ export default function Project() {
 
   const [activeTab, setActiveTab] = useState<Tab>('linkedin');
   const [linkedinPost, setLinkedinPost] = useState('');
+  const [language, setLanguage] = useState<Language>('English');
+  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [readme, setReadme] = useState('');
   const [loadingTab, setLoadingTab] = useState<Tab | null>(null);
@@ -92,40 +105,41 @@ export default function Project() {
       return;
     }
 
-    if(!repoUrl) return;
+    if (!repoUrl) return;
     setLoadingTab(tab);
 
     try {
-        if(tab === 'linkedin') {
-            const result = await generateLinkedinPost({
-                repoUrl,
-                tone,
-                length
-            });
+      if (tab === 'linkedin') {
+        const result = await generateLinkedinPost({
+          repoUrl,
+          tone,
+          length,
+          language
+        });
 
-            setLinkedinPost(result.content);
+        setLinkedinPost(result.content);
 
-            await saveProject({
-              repoUrl,
-              repoName,
-              linkedinPost: result.content
-            })
-        }
+        await saveProject({
+          repoUrl,
+          repoName,
+          linkedinPost: result.content
+        })
+      }
 
-        if(tab === 'readme') {
-            const result = await generateReadme({repoUrl});
-            setReadme(result.content);
+      if (tab === 'readme') {
+        const result = await generateReadme({ repoUrl });
+        setReadme(result.content);
 
-            await saveProject({
-              repoUrl,
-              repoName,
-              readme: result.content
-            });
+        await saveProject({
+          repoUrl,
+          repoName,
+          readme: result.content
+        });
 
-        }
-    
-    } catch(error) {
-        console.error(error);
+      }
+
+    } catch (error) {
+      console.error(error);
     }
 
     setLoadingTab(null);
@@ -137,7 +151,7 @@ export default function Project() {
     async function init() {
       const exists = await loadProject(repoUrl);
 
-      if(!exists) {
+      if (!exists) {
         generateTab("linkedin");
       }
     }
@@ -147,13 +161,13 @@ export default function Project() {
 
   async function generateLinkedinPost(data: GenerateLinkedinRequest): Promise<GenerateResponse> {
     const res = await fetch('http://localhost:3001/api/generatePost', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
     });
 
-    if(!res.ok) {
-        throw new Error('Failed to generate LinkedIn post');
+    if (!res.ok) {
+      throw new Error('Failed to generate LinkedIn post');
     }
 
     return res.json();
@@ -162,8 +176,8 @@ export default function Project() {
   async function loadProject(repoUrl: string) {
     const { data: userData } = await supabase.auth.getUser();
     const user = userData.user;
-    
-    if(!user) return;
+
+    if (!user) return;
 
     const { data } = await supabase
       .from('projects')
@@ -172,24 +186,24 @@ export default function Project() {
       .eq('repo_url', repoUrl)
       .single();
 
-      if(data) {
-        setLinkedinPost(data.linkedin_post || '');
-        setReadme(data.readme || '');
-        return true;
-      }
+    if (data) {
+      setLinkedinPost(data.linkedin_post || '');
+      setReadme(data.readme || '');
+      return true;
+    }
 
-      return false;
+    return false;
   }
 
   async function generateReadme(data: GenerateReadmeRequest): Promise<GenerateResponse> {
     const res = await fetch('http://localhost:3001/api/generateREADME', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
     });
 
-    if(!res.ok) {
-        throw new Error('Failed to generate README');
+    if (!res.ok) {
+      throw new Error('Failed to generate README');
     }
 
     return res.json();
@@ -199,7 +213,7 @@ export default function Project() {
     const { data: userData } = await supabase.auth.getUser();
     const user = userData.user;
 
-    if(!user) return;
+    if (!user) return;
 
     await supabase
       .from("projects")
@@ -259,10 +273,7 @@ export default function Project() {
               <ArrowLeft className="w-4 h-4" />
               Back
             </a>
-            <a href={createPageUrl('Dashboard')} className="flex items-center gap-2 text-white/40 hover:text-white/70 transition-colors text-sm">
-              <LayoutDashboard className="w-4 h-4" />
-              Dashboard
-            </a>
+
             <div className="h-4 w-px bg-white/10" />
             <a href="/" className="flex items-center gap-2">
               <span className="text-white/80 font-medium text-sm">codescribe<span className="text-violet-400">.io</span></span>
@@ -340,6 +351,33 @@ export default function Project() {
                     )}
                   </div>
                 </div>
+                {/* Language */}
+                <div className="space-y-2">
+                  <label className="text-xs text-white/40">Language</label>
+                  <div className="relative">
+                    <button
+                      onClick={() => { setShowLanguageDropdown(!showLanguageDropdown); setShowToneDropdown(false); setShowLengthDropdown(false); }}
+                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:border-white/[0.15] text-white/70 text-sm transition-all"
+                    >
+                      {language}
+                      <ChevronDown className="w-3.5 h-3.5 text-white/30" />
+                    </button>
+                    {showLanguageDropdown && (
+                      <div className="absolute top-full mt-1 w-full bg-[#0f0f1f] border border-white/10 rounded-xl overflow-hidden z-30 shadow-xl">
+                        {LANGUAGES.map((l) => (
+                          <button
+                            key={l}
+                            onClick={() => { setLanguage(l); setShowLanguageDropdown(false); }}
+                            className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-white/[0.05] ${language === l ? 'text-violet-400' : 'text-white/60'}`}
+                          >
+                            {l}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
               </div>
             )}
 
@@ -359,39 +397,7 @@ export default function Project() {
 
             <RecentProjects currentRepo={repoUrl} />
 
-            {currentContent && (
-              <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5 space-y-3">
-                <h3 className="text-white/60 text-xs font-semibold uppercase tracking-widest">Actions</h3>
-
-                <button
-                  onClick={handleCopy}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-white/[0.04] border border-transparent hover:border-white/[0.08] text-white/50 hover:text-white/80 text-sm transition-all"
-                >
-                  {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                  {copied ? 'Copied!' : 'Copy to clipboard'}
-                </button>
-
-                <button
-                  onClick={handleDownload}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-white/[0.04] border border-transparent hover:border-white/[0.08] text-white/50 hover:text-white/80 text-sm transition-all"
-                >
-                  <Download className="w-4 h-4" />
-                  Download file
-                </button>
-
-                {activeTab === 'linkedin' && (
-                  <a
-                    href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(repoUrl)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-blue-600/10 border border-transparent hover:border-blue-500/20 text-white/50 hover:text-blue-400 text-sm transition-all"
-                  >
-                    <Share2 className="w-4 h-4" />
-                    Open LinkedIn
-                  </a>
-                )}
-              </div>
-            )}
+            
           </div>
 
           {/* Main content */}

@@ -5,7 +5,7 @@ const client = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
 })
 
-export async function generatePost(repoData: RepoAnalysis, tone: string = 'Professional', length: string = 'Medium (250 words)' ): Promise<string> {
+export async function generatePost(repoData: RepoAnalysis, tone: string = 'Professional', length: string = 'Medium (250 words)', language: string = 'English'): Promise<string> {
 
     const dependencies = Object.keys(repoData.dependencies)
         .slice(0, 10)
@@ -42,6 +42,7 @@ export async function generatePost(repoData: RepoAnalysis, tone: string = 'Profe
     ${files}
     
     Rules:
+    - Write the entire post in ${language}
     - Tone: ${toneInstructions[tone] || toneInstructions['Professional']}
     - Start with a strong hook
     - Use short paragraphs
