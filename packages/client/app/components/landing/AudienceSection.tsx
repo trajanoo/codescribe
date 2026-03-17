@@ -8,28 +8,28 @@ const audiences = [
   {
     icon: GraduationCap,
     title: 'Students',
-    quote: '"I spent 3 hours writing a README for my class project. Now it takes 30 seconds."',
+    quote: 'Create professional documentation for coursework and portfolio projects.',
     benefit: 'Present coursework and personal projects like a pro — impress professors and recruiters.',
     gradient: 'from-violet-500/20 to-violet-500/0',
   },
   {
     icon: Code2,
     title: 'Developers',
-    quote: '"I finally started sharing my side projects. The LinkedIn posts practically write themselves."',
+    quote: 'Share side projects with polished LinkedIn posts and clean README files.',
     benefit: 'Showcase your technical skills without spending hours on documentation and copywriting.',
     gradient: 'from-blue-500/20 to-blue-500/0',
   },
   {
     icon: Rocket,
     title: 'Indie Hackers',
-    quote: '"Launched my project on LinkedIn and got 50+ reactions. The hook was AI-generated."',
+    quote: 'Launch projects with clear messaging that helps people understand what you built.',
     benefit: 'Build in public with polished content that drives engagement and early users.',
     gradient: 'from-emerald-500/20 to-emerald-500/0',
   },
   {
     icon: Users,
     title: 'Team Leads',
-    quote: '"Our open-source repos finally have consistent, high-quality documentation."',
+    quote: 'Standardize documentation across repositories and improve team collaboration.',
     benefit: 'Standardize documentation across your team\'s repositories effortlessly.',
     gradient: 'from-cyan-500/20 to-cyan-500/0',
   },
@@ -79,7 +79,7 @@ export default function AudienceSection() {
                     <h3 className="text-white font-semibold tracking-tight">{item.title}</h3>
                   </div>
 
-                  <p className="text-white/50 text-sm italic leading-relaxed mb-4">
+                  <p className="text-white/50 text-sm font-semibold leading-relaxed mb-4">
                     {item.quote}
                   </p>
 

@@ -100,6 +100,30 @@ export default function Project() {
 
     getUser();
   }, []);
+  
+  // Read query params (from modal) and apply them to initial state
+  useEffect(() => {
+    const typeParam = searchParams.get('type');
+    const toneParam = searchParams.get('tone');
+    const lengthParam = searchParams.get('length');
+    const langParam = searchParams.get('language');
+
+    if (typeParam === 'readme' || typeParam === 'linkedin') {
+      setActiveTab(typeParam as Tab);
+    }
+
+    if (toneParam && TONES.includes(toneParam as Tone)) {
+      setTone(toneParam as Tone);
+    }
+
+    if (lengthParam && LENGTHS.includes(lengthParam as Length)) {
+      setLength(lengthParam as Length);
+    }
+
+    if (langParam && LANGUAGES.includes(langParam as Language)) {
+      setLanguage(langParam as Language);
+    }
+  }, [searchParams]);
   const generateTab = async (tab: Tab) => {
     if (!user) {
       return;
@@ -152,12 +176,13 @@ export default function Project() {
       const exists = await loadProject(repoUrl);
 
       if (!exists) {
-        generateTab("linkedin");
+        // generate the currently active tab (may have been set from query params)
+        generateTab(activeTab);
       }
     }
 
-    init()
-  }, [repoUrl, user]);
+    init();
+  }, [repoUrl, user, activeTab]);
 
   async function generateLinkedinPost(data: GenerateLinkedinRequest): Promise<GenerateResponse> {
     const res = await fetch('http://localhost:3001/api/generatePost', {

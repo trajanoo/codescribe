@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { Timestamp } from 'next/dist/server/lib/cache-handlers/types';
 import { sup } from 'framer-motion/client';
 import { toast } from 'sonner';
+import GenerateModal from '../components/project/GenerateModal';
 
 interface Project {
     repo_url: string
@@ -33,6 +34,7 @@ function isValidGithubRepo(url: string) {
 export default function Dashboard() {
     const [projects, setProjects] = useState<Project[]>([]);
     const [newUrl, setNewUrl] = useState('');
+    const [modalIsOpen, setModalIsOpen] = useState(false);
 
     useEffect(() => {
         async function fetchProjects() {
@@ -84,7 +86,8 @@ export default function Dashboard() {
             toast.error('Please enter a valid GitHub repository URL.');
             return;
         }
-        window.location.href = createPageUrl('Project') + `?repo=${encodeURIComponent(newUrl.trim())}`;
+
+        setModalIsOpen(true);
     };
 
     return (
@@ -203,6 +206,7 @@ export default function Dashboard() {
                     </div>
                 )}
             </div>
+            { modalIsOpen && <GenerateModal repoUrl={newUrl} onClose={() => setModalIsOpen(false)} /> }
         </div>
     );
 }

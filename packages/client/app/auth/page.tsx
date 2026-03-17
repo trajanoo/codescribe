@@ -137,7 +137,7 @@ export default function Auth() {
               ))}
             </div>
             <p className="text-white/30">
-              Join <span className="text-white font-medium">2,000+</span> developers
+              Trusted by developers <span className='font-medium text-white'>worldwide.</span>.
             </p>
           </motion.div>
         </div>

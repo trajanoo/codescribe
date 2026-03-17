@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Github, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import GenerateModal from '../project/GenerateModal';
 import { toast } from 'sonner';
 
 
@@ -33,6 +34,8 @@ function isValidGithubRepo(url: string) {
 export default function HeroSection() {
   const router = useRouter();
   const [repoUrl, setRepoUrl] = useState('');
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  
 
   const handleGenerate = async () => {
     if (!repoUrl.trim()) return;
@@ -49,17 +52,15 @@ export default function HeroSection() {
       return;
     }
     
-    router.push(`/project?repo=${encodeURIComponent(repoUrl.trim())}`);
+    setModalIsOpen(true);
   };
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
-      {/* Background effects */}
       <div className="absolute inset-0 bg-[#07070f]" />
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-violet-600/8 rounded-full blur-[120px]" />
       <div className="absolute top-1/3 left-1/3 w-[400px] h-[400px] bg-blue-600/5 rounded-full blur-[100px]" />
 
-      {/* Grid pattern */}
       <div
         className="absolute inset-0 opacity-[0.03]"
         style={{
@@ -208,6 +209,8 @@ export default function HeroSection() {
 
         
       </div>
+
+      { modalIsOpen && <GenerateModal repoUrl={repoUrl} onClose={() => setModalIsOpen(false)} /> }
     </section>
   );
 }
