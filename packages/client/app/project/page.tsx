@@ -423,7 +423,10 @@ export default function Project() {
             <RecentProjects currentRepo={repoUrl} />
 
             
+            
           </div>
+
+          
 
           {/* Main content */}
           <div className="min-w-0">
@@ -461,12 +464,47 @@ export default function Project() {
                       {activeTab === 'linkedin' ? 'linkedin-post.txt' : 'README.md'}
                     </span>
                   </div>
-                  {currentContent && (
-                    <div className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      <span className="text-white/25 text-xs">AI-generated</span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2 ">
+                    {currentContent && (
+                      <>
+                        <button
+                          onClick={handleCopy}
+                          className="flex cursor-pointer items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-white/[0.02] border border-transparent hover:border-white/[0.04] text-white/50 hover:text-white/80 text-sm transition-all"
+                          aria-label="Copy"
+                        >
+                          {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                        </button>
+
+                        <button
+                          onClick={handleDownload}
+                          className="flex cursor-pointer items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-white/[0.02] border border-transparent hover:border-white/[0.04] text-white/50 hover:text-white/80 text-sm transition-all"
+                          aria-label="Download"
+                        >
+                          <Download className="w-4 h-4" />
+                        </button>
+
+                        {activeTab === 'linkedin' && (
+                          <a
+                            href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(repoUrl)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-blue-600/6 border border-transparent hover:border-blue-500/20 text-white/50 hover:text-blue-400 text-sm transition-all"
+                          >
+                            <Share2 className="w-4 h-4" />
+                          </a>
+                        )}
+                      </>
+                    )}
+
+                    {currentContent && (
+                      <div className="flex items-center gap-15 ml-2">
+                        <div className='flex items-center gap-2'>
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          <span className="text-white/25 text-xs">AI-generated</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <AnimatePresence mode="wait">

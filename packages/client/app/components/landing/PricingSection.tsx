@@ -101,7 +101,6 @@ export default function PricingSection() {
           </div>
         </motion.div>
 
-        {/* Cards */}
         <div className="grid md:grid-cols-3 gap-5">
           {plans.map((plan, i) => (
             <motion.div

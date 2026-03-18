@@ -53,6 +53,15 @@ export default function Auth() {
         toast.success('Account created! Please check your email to confirm your account.')
     }
 
+    async function loginWithGithub() {
+      await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+    }
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if(isLogin) {
@@ -137,7 +146,7 @@ export default function Auth() {
               ))}
             </div>
             <p className="text-white/30">
-              Trusted by developers <span className='font-medium text-white'>worldwide.</span>.
+              Trusted by developers <span className='font-medium text-white'>worldwide.</span>
             </p>
           </motion.div>
         </div>
@@ -180,9 +189,10 @@ export default function Auth() {
 
             {/* GitHub Button */}
             <motion.button
+              onClick={loginWithGithub}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
-              className="group relative w-full h-14 rounded-2xl overflow-hidden"
+              className="group cursor-pointer relative w-full h-14 rounded-2xl overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-violet-600/10 via-blue-600/10 to-violet-600/10 opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="absolute cursor-pointer inset-px bg-[#0a0a1a] rounded-2xl flex items-center justify-center gap-3">
