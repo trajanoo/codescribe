@@ -3,6 +3,7 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import { analyzeRepository } from '../services/github.service';
 import { generatePost, generateREADME } from '../services/openai.service';
+import { generateRedditPost } from '../services/reddit.service';
 
 const router = Router();   
 
@@ -36,6 +37,24 @@ router.post("/generateREADME", async (req: Request, res: Response) => {
         const readme = await generateREADME(repoData);
 
         res.json({ content: readme });
+
+    } catch(e) {
+        res.status(500).json({ error: e });
+    }
+});
+
+router.post("/generateReddit", async (req: Request, res: Response) => {
+    try {
+        const { repoUrl } = req.body;
+
+        if (!repoUrl) {
+            return res.status(400).json({ error: "repoUrl is required" });
+        }
+
+        const repoData = await analyzeRepository(repoUrl);
+        const result = await generateRedditPost(repoData);
+
+        res.json(result);
 
     } catch(e) {
         res.status(500).json({ error: e });
