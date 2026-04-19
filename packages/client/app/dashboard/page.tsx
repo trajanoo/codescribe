@@ -107,7 +107,7 @@ export default function Dashboard() {
                         </a>
                         <div className="h-4 w-px bg-white/10" />
                         <a href={createPageUrl('Home')} className="flex items-center gap-2">
-                            <span className="text-white/80 font-medium text-sm">codescribe<span className="text-violet-400">.io</span></span>
+                            <span className="text-white/80 font-medium text-sm">codescribe<span className="text-violet-400">.ink</span></span>
                         </a>
                     </div>
                 </div>
@@ -196,7 +196,7 @@ export default function Dashboard() {
                                     </a>
                                     <button
                                         onClick={() => handleDelete(project.repo_url)}
-                                        className="p-1.5 rounded-lg hover:bg-red-500/10 text-white/20 hover:text-red-400 transition-all"
+                                        className="p-1.5 rounded-lg hover:bg-red-500/10 cursor-pointer text-white/20 hover:text-red-400 transition-all"
                                     >
                                         <Trash2 className="w-3.5 h-3.5" />
                                     </button>

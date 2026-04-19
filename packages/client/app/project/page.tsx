@@ -7,11 +7,12 @@ import {
   FileText, Sparkles, ChevronDown, Wand2, Download, Share2, LayoutDashboard
 } from 'lucide-react';
 import RecentProjects from '../components/project/RecentProjects';
+import RedditTab from '../components/project/RedditTab';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
-type Tab = 'linkedin' | 'readme';
+type Tab = 'linkedin' | 'readme' | 'reddit';
 
 type Tone =
   | 'Professional'
@@ -45,6 +46,12 @@ interface GenerateReadmeRequest {
 
 interface GenerateResponse {
   content: string;
+}
+
+interface RedditPost {
+  title: string;
+  body: string;
+  subreddits: { name: string; members: number; reason?: string }[];
 }
 
 interface RecentRepo {
@@ -85,6 +92,7 @@ export default function Project() {
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [readme, setReadme] = useState('');
+  const [redditPost, setRedditPost] = useState<RedditPost | null>(null);
   const [loadingTab, setLoadingTab] = useState<Tab | null>(null);
   const [copied, setCopied] = useState(false);
   const [tone, setTone] = useState<Tone>('Professional');
@@ -108,7 +116,7 @@ export default function Project() {
     const lengthParam = searchParams.get('length');
     const langParam = searchParams.get('language');
 
-    if (typeParam === 'readme' || typeParam === 'linkedin') {
+    if (typeParam === 'readme' || typeParam === 'linkedin' || typeParam === 'reddit') {
       setActiveTab(typeParam as Tab);
     }
 
@@ -159,7 +167,18 @@ export default function Project() {
           repoName,
           readme: result.content
         });
+      }
 
+      if (tab === 'reddit') {
+        const res = await fetch('http://localhost:3001/api/generateReddit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ repoUrl }),
+        });
+        if (!res.ok) throw new Error('Failed to generate Reddit post');
+        const data: RedditPost = await res.json();
+        setRedditPost(data);
+        await saveProject({ repoUrl, repoName, redditPost: data });
       }
 
     } catch (error) {
@@ -214,6 +233,9 @@ export default function Project() {
     if (data) {
       setLinkedinPost(data.linkedin_post || '');
       setReadme(data.readme || '');
+      if (data.reddit_post) {
+        try { setRedditPost(JSON.parse(data.reddit_post)); } catch {}
+      }
       return true;
     }
 
@@ -234,7 +256,7 @@ export default function Project() {
     return res.json();
   }
 
-  async function saveProject(data: { repoUrl: string; repoName: string; linkedinPost?: string; readme?: string }) {
+  async function saveProject(data: { repoUrl: string; repoName: string; linkedinPost?: string; readme?: string; redditPost?: RedditPost }) {
     const { data: userData } = await supabase.auth.getUser();
     const user = userData.user;
 
@@ -247,7 +269,8 @@ export default function Project() {
         repo_url: data.repoUrl,
         repo_name: data.repoName,
         linkedin_post: data.linkedinPost,
-        readme: data.readme
+        readme: data.readme,
+        ...(data.redditPost !== undefined && { reddit_post: JSON.stringify(data.redditPost) }),
       }, {
         onConflict: "user_id,repo_url"
       });
@@ -274,12 +297,15 @@ export default function Project() {
 
   const repoName = repoUrl.replace('https://github.com/', '').replace('http://github.com/', '');
   const currentContent = activeTab === 'linkedin' ? linkedinPost : readme;
+  const hasContent = activeTab === 'linkedin' ? !!linkedinPost : activeTab === 'readme' ? !!readme : !!redditPost;
   const isLoadingCurrent = loadingTab === activeTab;
+  const isReddit = activeTab === 'reddit';
 
   const handleTabChange = (tab: Tab) => {
     setActiveTab(tab);
     if (tab === 'linkedin' && !linkedinPost && loadingTab !== 'linkedin') generateTab('linkedin');
     if (tab === 'readme' && !readme && loadingTab !== 'readme') generateTab('readme');
+    if (tab === 'reddit' && !redditPost && loadingTab !== 'reddit') generateTab('reddit');
   };
 
   return (
@@ -301,7 +327,7 @@ export default function Project() {
 
             <div className="h-4 w-px bg-white/10" />
             <a href="/" className="flex items-center gap-2">
-              <span className="text-white/80 font-medium text-sm">codescribe<span className="text-violet-400">.io</span></span>
+              <span className="text-white/80 font-medium text-sm">codescribe<span className="text-violet-400">.ink</span></span>
             </a>
           </div>
 
@@ -410,14 +436,18 @@ export default function Project() {
             <button
               onClick={() => generateTab(activeTab)}
               disabled={isLoadingCurrent}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600/20 hover:bg-violet-600/30 border border-violet-500/20 text-violet-300 text-sm font-medium transition-all disabled:opacity-50"
+              className={`w-full flex items-center cursor-pointer justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-50 ${
+                isReddit
+                  ? 'bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/20 text-orange-300'
+                  : 'bg-violet-600/20 hover:bg-violet-600/30 border border-violet-500/20 text-violet-300'
+              }`}
             >
               {isLoadingCurrent ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />
               ) : (
                 <Wand2 className="w-4 h-4" />
               )}
-              {isLoadingCurrent ? 'Generating...' : currentContent ? 'Regenerate' : 'Generate'}
+              {isLoadingCurrent ? 'Generating...' : hasContent ? 'Regenerate' : 'Generate'}
             </button>
 
             <RecentProjects currentRepo={repoUrl} />
@@ -434,22 +464,39 @@ export default function Project() {
             <div className="flex items-center gap-1 p-1 bg-white/[0.02] border border-white/[0.06] rounded-2xl w-fit mb-6">
               <button
                 onClick={() => handleTabChange('linkedin')}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === 'linkedin' ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/20' : 'text-white/40 hover:text-white/60'}`}
+                className={`cursor-pointer flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === 'linkedin' ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/20' : 'text-white/40 hover:text-white/60'}`}
               >
                 <Linkedin className="w-4 h-4" />
                 LinkedIn Post
               </button>
               <button
                 onClick={() => handleTabChange('readme')}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === 'readme' ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/20' : 'text-white/40 hover:text-white/60'}`}
+                className={`cursor-pointer flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === 'readme' ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/20' : 'text-white/40 hover:text-white/60'}`}
               >
                 <FileText className="w-4 h-4" />
                 README
               </button>
+              <button
+                onClick={() => handleTabChange('reddit')}
+                className={`cursor-pointer flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === 'reddit' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'text-white/40 hover:text-white/60'}`}
+              >
+                <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4" style={{ transform: 'scaleY(-1)' }}>
+                  <path d="M10 0C4.478 0 0 4.478 0 10c0 5.523 4.478 10 10 10 5.523 0 10-4.477 10-10 0-5.522-4.477-10-10-10zm6.894 11.287a1.45 1.45 0 0 1-1.45 1.45 1.44 1.44 0 0 1-.98-.386c-.98.686-2.335 1.13-3.845 1.184l.65 3.063 2.114-.448a1.03 1.03 0 0 1 1.03 1.03 1.03 1.03 0 0 1-1.03 1.03 1.03 1.03 0 0 1-1.03-1.03l-2.354.5a.24.24 0 0 1-.283-.183l-.722-3.407c-1.533-.043-2.908-.49-3.895-1.183a1.44 1.44 0 0 1-.98.386 1.45 1.45 0 0 1-1.45-1.45c0-.577.337-1.075.826-1.31a2.85 2.85 0 0 1-.03-.407c0-2.065 2.404-3.74 5.37-3.74s5.37 1.675 5.37 3.74c0 .136-.01.27-.03.404.494.234.834.735.834 1.313zM7.017 10.51a1.03 1.03 0 0 0-1.03 1.03 1.03 1.03 0 0 0 1.03 1.03 1.03 1.03 0 0 0 1.03-1.03 1.03 1.03 0 0 0-1.03-1.03zm5.966 0a1.03 1.03 0 0 0-1.03 1.03 1.03 1.03 0 0 0 1.03 1.03 1.03 1.03 0 0 0 1.03-1.03 1.03 1.03 0 0 0-1.03-1.03zm-3.085 3.547c.782 0 1.43-.183 1.876-.473a.24.24 0 0 0 .033-.37.24.24 0 0 0-.34-.012c-.373.266-.908.424-1.57.424-.66 0-1.197-.158-1.57-.424a.24.24 0 0 0-.338.012.24.24 0 0 0 .033.37c.447.29 1.094.473 1.876.473z"/>
+                </svg>
+                Reddit
+              </button>
             </div>
 
+            { activeTab === 'reddit' && (
+              <RedditTab
+                post={redditPost}
+                onPostChange={setRedditPost}
+                isLoading={isLoadingCurrent}
+              />
+            )}
+
             {/* Editor */}
-            <div className="relative">
+            <div className="relative" style={{ display: activeTab === 'reddit' ? 'none' : undefined }}>
               <div className="absolute -inset-px bg-gradient-to-r from-violet-600/10 via-transparent to-blue-600/10 rounded-2xl" />
               <div className="relative bg-[#0a0a18] border border-white/[0.07] rounded-2xl overflow-hidden">
                 {/* Editor toolbar */}

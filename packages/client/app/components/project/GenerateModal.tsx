@@ -4,9 +4,18 @@ import { X, ArrowRight, Linkedin, FileText, Wand2 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { useRouter } from 'next/navigation';
 
+function RedditIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 20 20" fill="currentColor" className={className}>
+      <path d="M10 0C4.478 0 0 4.478 0 10c0 5.523 4.478 10 10 10 5.523 0 10-4.477 10-10 0-5.522-4.477-10-10-10zm6.894 11.287a1.45 1.45 0 0 1-1.45 1.45 1.44 1.44 0 0 1-.98-.386c-.98.686-2.335 1.13-3.845 1.184l.65 3.063 2.114-.448a1.03 1.03 0 0 1 1.03 1.03 1.03 1.03 0 0 1-1.03 1.03 1.03 1.03 0 0 1-1.03-1.03l-2.354.5a.24.24 0 0 1-.283-.183l-.722-3.407c-1.533-.043-2.908-.49-3.895-1.183a1.44 1.44 0 0 1-.98.386 1.45 1.45 0 0 1-1.45-1.45c0-.577.337-1.075.826-1.31a2.85 2.85 0 0 1-.03-.407c0-2.065 2.404-3.74 5.37-3.74s5.37 1.675 5.37 3.74c0 .136-.01.27-.03.404.494.234.834.735.834 1.313zM7.017 10.51a1.03 1.03 0 0 0-1.03 1.03 1.03 1.03 0 0 0 1.03 1.03 1.03 1.03 0 0 0 1.03-1.03 1.03 1.03 0 0 0-1.03-1.03zm5.966 0a1.03 1.03 0 0 0-1.03 1.03 1.03 1.03 0 0 0 1.03 1.03 1.03 1.03 0 0 0 1.03-1.03 1.03 1.03 0 0 0-1.03-1.03zm-3.085 3.547c.782 0 1.43-.183 1.876-.473a.24.24 0 0 0 .033-.37.24.24 0 0 0-.34-.012c-.373.266-.908.424-1.57.424-.66 0-1.197-.158-1.57-.424a.24.24 0 0 0-.338.012.24.24 0 0 0 .033.37c.447.29 1.094.473 1.876.473z"/>
+    </svg>
+  );
+}
+
 const CONTENT_TYPES = [
   { id: 'linkedin', label: 'LinkedIn Post', icon: Linkedin, desc: 'Engaging post to share your project' },
   { id: 'readme', label: 'README', icon: FileText, desc: 'Professional documentation file' },
+  { id: 'reddit', label: 'Reddit Post', icon: RedditIcon, desc: 'Authentic post with community suggestions' },
 ];
 
 const TONES = ['Professional', 'Casual', 'Excited', 'Storytelling', 'Technical'];
@@ -76,7 +85,7 @@ export default function GenerateModal({ repoUrl, onClose}: { repoUrl: string, on
           <div className="space-y-6">
             <div>
               <label className="text-xs text-white/40 font-medium uppercase tracking-widest block mb-3">Content type</label>
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-3 gap-2.5">
                 {CONTENT_TYPES.map(({ id, label, icon: Icon, desc }) => (
                   <button
                     key={id}

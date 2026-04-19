@@ -152,7 +152,7 @@ export default function Auth() {
         </div>
 
         <div className="text-white/20 text-xs">
-          © 2026 codescribe.io
+          © 2026 codescribe.ink
         </div>
       </div>
 

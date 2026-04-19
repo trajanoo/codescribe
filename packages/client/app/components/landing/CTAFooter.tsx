@@ -77,7 +77,7 @@ export default function CTAFooter() {
             <div className="flex items-center gap-2.5">
 
               <span className="text-white/60 font-medium text-sm">
-                codescribe<span className="text-violet-400/60">.io</span>
+                codescribe<span className="text-violet-400/60">.ink</span>
               </span>
             </div>
 
@@ -94,7 +94,7 @@ export default function CTAFooter() {
             </div>
 
             <p className="text-xs text-white/15">
-              © 2026 codescribe.io. All rights reserved.
+              © 2026 codescribe.ink. All rights reserved.
             </p>
           </div>
         </div>

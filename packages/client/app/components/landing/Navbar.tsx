@@ -51,7 +51,7 @@ export default function Navbar() {
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         <a href="#" className="flex items-center gap-2.5 group">
           <span className="text-white font-semibold text-lg tracking-tight">
-            codescribe<span className="text-violet-400">.io</span>
+            codescribe<span className="text-violet-400">.ink</span>
           </span>
         </a>
 
