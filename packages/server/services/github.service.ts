@@ -50,7 +50,7 @@ async function getReadme(owner: string, repo: string) {
 
     return Buffer.from(res.data.content, "base64")
       .toString("utf-8")
-      .slice(0, 2000);
+      .slice(0, 5000);
   } catch {
     return "No README found.";
   }

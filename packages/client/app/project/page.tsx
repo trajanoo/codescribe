@@ -173,7 +173,7 @@ export default function Project() {
         const res = await fetch('http://localhost:3001/api/generateReddit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ repoUrl }),
+          body: JSON.stringify({ repoUrl, language }),
         });
         if (!res.ok) throw new Error('Failed to generate Reddit post');
         const data: RedditPost = await res.json();
@@ -344,64 +344,69 @@ export default function Project() {
         <div className="grid lg:grid-cols-[300px_1fr] gap-8">
           {/* Sidebar */}
           <div className="space-y-5">
-            {/* Options card — only relevant for linkedin tab */}
-            {activeTab === 'linkedin' && (
+            {/* Options card — linkedin: tone + length + language; reddit: language only */}
+            {(activeTab === 'linkedin' || activeTab === 'reddit') && (
               <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5 space-y-5">
                 <h3 className="text-white/60 text-xs font-semibold uppercase tracking-widest">Options</h3>
 
-                {/* Tone */}
-                <div className="space-y-2">
-                  <label className="text-xs text-white/40">Tone</label>
-                  <div className="relative">
-                    <button
-                      onClick={() => { setShowToneDropdown(!showToneDropdown); setShowLengthDropdown(false); }}
-                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:border-white/[0.15] text-white/70 text-sm transition-all"
-                    >
-                      {tone}
-                      <ChevronDown className="w-3.5 h-3.5 text-white/30" />
-                    </button>
-                    {showToneDropdown && (
-                      <div className="absolute top-full mt-1 w-full bg-[#0f0f1f] border border-white/10 rounded-xl overflow-hidden z-30 shadow-xl">
-                        {TONES.map((t) => (
-                          <button
-                            key={t}
-                            onClick={() => { setTone(t); setShowToneDropdown(false); }}
-                            className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-white/[0.05] ${tone === t ? 'text-violet-400' : 'text-white/60'}`}
-                          >
-                            {t}
-                          </button>
-                        ))}
+                {activeTab === 'linkedin' && (
+                  <>
+                    {/* Tone */}
+                    <div className="space-y-2">
+                      <label className="text-xs text-white/40">Tone</label>
+                      <div className="relative">
+                        <button
+                          onClick={() => { setShowToneDropdown(!showToneDropdown); setShowLengthDropdown(false); }}
+                          className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:border-white/[0.15] text-white/70 text-sm transition-all"
+                        >
+                          {tone}
+                          <ChevronDown className="w-3.5 h-3.5 text-white/30" />
+                        </button>
+                        {showToneDropdown && (
+                          <div className="absolute cursor-pointer top-full mt-1 w-full bg-[#0f0f1f] border border-white/10 rounded-xl overflow-hidden z-30 shadow-xl">
+                            {TONES.map((t) => (
+                              <button
+                                key={t}
+                                onClick={() => { setTone(t); setShowToneDropdown(false); }}
+                                className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-white/[0.05] ${tone === t ? 'text-violet-400' : 'text-white/60'}`}
+                              >
+                                {t}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </div>
+                    </div>
 
-                {/* Length */}
-                <div className="space-y-2">
-                  <label className="text-xs text-white/40">Length</label>
-                  <div className="relative">
-                    <button
-                      onClick={() => { setShowLengthDropdown(!showLengthDropdown); setShowToneDropdown(false); }}
-                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:border-white/[0.15] text-white/70 text-sm transition-all"
-                    >
-                      {length}
-                      <ChevronDown className="w-3.5 h-3.5 text-white/30" />
-                    </button>
-                    {showLengthDropdown && (
-                      <div className="absolute top-full mt-1 w-full bg-[#0f0f1f] border border-white/10 rounded-xl overflow-hidden z-30 shadow-xl">
-                        {LENGTHS.map((l) => (
-                          <button
-                            key={l}
-                            onClick={() => { setLength(l); setShowLengthDropdown(false); }}
-                            className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-white/[0.05] ${length === l ? 'text-violet-400' : 'text-white/60'}`}
-                          >
-                            {l}
-                          </button>
-                        ))}
+                    {/* Length */}
+                    <div className="space-y-2">
+                      <label className="text-xs text-white/40">Length</label>
+                      <div className="relative">
+                        <button
+                          onClick={() => { setShowLengthDropdown(!showLengthDropdown); setShowToneDropdown(false); }}
+                          className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:border-white/[0.15] text-white/70 text-sm transition-all"
+                        >
+                          {length}
+                          <ChevronDown className="w-3.5 h-3.5 text-white/30" />
+                        </button>
+                        {showLengthDropdown && (
+                          <div className="absolute cursor-pointer top-full mt-1 w-full bg-[#0f0f1f] border border-white/10 rounded-xl overflow-hidden z-30 shadow-xl">
+                            {LENGTHS.map((l) => (
+                              <button
+                                key={l}
+                                onClick={() => { setLength(l); setShowLengthDropdown(false); }}
+                                className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-white/[0.05] ${length === l ? 'text-violet-400' : 'text-white/60'}`}
+                              >
+                                {l}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </div>
+                    </div>
+                  </>
+                )}
+
                 {/* Language */}
                 <div className="space-y-2">
                   <label className="text-xs text-white/40">Language</label>
@@ -414,7 +419,7 @@ export default function Project() {
                       <ChevronDown className="w-3.5 h-3.5 text-white/30" />
                     </button>
                     {showLanguageDropdown && (
-                      <div className="absolute top-full mt-1 w-full bg-[#0f0f1f] border border-white/10 rounded-xl overflow-hidden z-30 shadow-xl">
+                      <div className="absolute cursor-pointer top-full mt-1 w-full bg-[#0f0f1f] border border-white/10 rounded-xl overflow-hidden z-30 shadow-xl">
                         {LANGUAGES.map((l) => (
                           <button
                             key={l}

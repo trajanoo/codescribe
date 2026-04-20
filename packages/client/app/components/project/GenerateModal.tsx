@@ -149,24 +149,26 @@ export default function GenerateModal({ repoUrl, onClose}: { repoUrl: string, on
               </div>
             )}
 
-            <div>
-              <label className="text-xs text-white/40 font-medium uppercase tracking-widest block mb-3">Language</label>
-              <div className="flex flex-wrap gap-2">
-                {LANGUAGES.map((lang) => (
-                  <button
-                    key={lang}
-                    onClick={() => setLanguage(lang)}
-                    className={`px-3.5 cursor-pointer py-1.5 rounded-lg text-sm transition-all ${
-                      language === lang
-                        ? 'bg-violet-600/20 border border-violet-500/40 text-violet-300'
-                        : 'bg-white/[0.03] border border-white/[0.07] text-white/40 hover:text-white/60 hover:border-white/[0.14]'
-                    }`}
-                  >
-                    {lang}
-                  </button>
-                ))}
+            {contentType !== 'readme' && (
+              <div>
+                <label className="text-xs text-white/40 font-medium uppercase tracking-widest block mb-3">Language</label>
+                <div className="flex flex-wrap gap-2">
+                  {LANGUAGES.map((lang) => (
+                    <button
+                      key={lang}
+                      onClick={() => setLanguage(lang)}
+                      className={`px-3.5 cursor-pointer py-1.5 rounded-lg text-sm transition-all ${
+                        language === lang
+                          ? 'bg-violet-600/20 border border-violet-500/40 text-violet-300'
+                          : 'bg-white/[0.03] border border-white/[0.07] text-white/40 hover:text-white/60 hover:border-white/[0.14]'
+                      }`}
+                    >
+                      {lang}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           <button

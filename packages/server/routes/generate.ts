@@ -45,14 +45,16 @@ router.post("/generateREADME", async (req: Request, res: Response) => {
 
 router.post("/generateReddit", async (req: Request, res: Response) => {
     try {
-        const { repoUrl } = req.body;
+        const { repoUrl, language } = req.body;
 
         if (!repoUrl) {
             return res.status(400).json({ error: "repoUrl is required" });
         }
 
+        console.log("[generateReddit] language received:", language);
+
         const repoData = await analyzeRepository(repoUrl);
-        const result = await generateRedditPost(repoData);
+        const result = await generateRedditPost(repoData, language);
 
         res.json(result);
 
