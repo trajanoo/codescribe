@@ -2,64 +2,96 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Sparkles, Zap, Building2 } from 'lucide-react';
-import { createPageUrl } from '@/utils';
+import { Check, Minus, Zap, Sparkles, Flame, Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 const plans = [
   {
     icon: Zap,
     name: 'Free',
-    price: { monthly: 0, yearly: 0 },
-    description: 'Perfect for trying it out.',
+    price: '$0',
+    billingNote: '4 credits / month — resets monthly',
+    description: 'Try it out. No credit card required.',
     cta: 'Get started free',
     ctaStyle: 'border border-white/10 text-white/70 hover:border-white/20 hover:text-white',
+    highlight: false,
     features: [
-      '5 generations per month',
-      'LinkedIn post generation',
-      'README generation',
-      'Copy to clipboard',
+      { text: 'LinkedIn post generation', included: true },
+      { text: 'README generation', included: true },
+      { text: 'Reddit post + subreddit picks', included: true },
+      { text: 'Custom tone & length', included: false },
+      { text: 'Download files', included: false },
     ],
-    missing: ['Custom tone & length', 'Priority generation', 'Team access'],
   },
   {
     icon: Sparkles,
-    name: 'Pro',
-    price: { monthly: 10, yearly: 7 },
+    name: 'Core',
+    price: '$9.99',
+    billingNote: '15 credits — never expire',
     description: 'For developers who ship regularly.',
-    cta: 'Start Pro',
+    cta: 'Buy 15 credits',
     ctaStyle: 'bg-violet-600 hover:bg-violet-500 text-white shadow-lg shadow-violet-500/20',
     highlight: true,
     features: [
-      'Unlimited generations',
-      'LinkedIn post generation',
-      'README generation',
-      'Custom tone & length',
-      'Download files',
-      'Priority generation',
+      { text: 'LinkedIn post generation', included: true },
+      { text: 'README generation', included: true },
+      { text: 'Reddit post + subreddit picks', included: true },
+      { text: 'Custom tone & length', included: true },
+      { text: 'Download files', included: true },
     ],
-    missing: ['Team access'],
   },
   {
-    icon: Building2,
-    name: 'Enterprise',
-    price: { monthly: null, yearly: null },
-    description: 'For teams and organizations.',
-    cta: 'Contact us',
-    ctaStyle: 'border border-white/10 text-white/70 hover:border-white/20 hover:text-white',
+    icon: Flame,
+    name: 'Pro',
+    price: '$19.99',
+    billingNote: '40 credits — never expire',
+    description: 'Buy in bulk. Use whenever.',
+    cta: 'Buy 40 credits',
+    ctaStyle: 'border border-white/10 text-white/70 hover:border-white/20 hover:bg-violet-600 hover:text-white',
+    highlight: false,
     features: [
-      'Everything in Pro',
-      'Team access & collaboration',
-      'Custom branding',
-      'API access',
-      'Dedicated support',
-      'SLA guarantee',
+      { text: 'LinkedIn post generation', included: true },
+      { text: 'README generation', included: true },
+      { text: 'Reddit post + subreddit picks', included: true },
+      { text: 'Custom tone & length', included: true },
+      { text: 'Download files', included: true },
     ],
-    missing: [],
   },
 ];
 
 export default function PricingSection() {
-  const [yearly, setYearly] = useState(false);
+  const router = useRouter();
+  const [purchasingPlan, setPurchasingPlan] = useState<'core' | 'pro' | null>(null);
+
+  async function handleFreeCta() {
+    const { data: { session } } = await supabase.auth.getSession();
+    router.push(session ? '/dashboard' : '/auth');
+  }
+
+  async function handlePurchase(plan: 'core' | 'pro') {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+      router.push('/auth');
+      return;
+    }
+
+    setPurchasingPlan(plan);
+    try {
+      const res = await fetch('http://localhost:3001/api/payments/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan, userId: session.user.id }),
+      });
+
+      const { url } = await res.json() as { url: string };
+      window.location.href = url;
+    } catch (err) {
+      console.error('Checkout error:', err);
+      setPurchasingPlan(null);
+    }
+  }
 
   return (
     <section id="pricing" className="relative py-32 overflow-hidden">
@@ -78,27 +110,13 @@ export default function PricingSection() {
         >
           <p className="text-xs font-semibold tracking-[0.2em] text-violet-400/80 uppercase mb-4">Pricing</p>
           <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
-            Simple, transparent
+            Pay for what you use.
             <br />
-            <span className="text-white/30">pricing.</span>
+            <span className="text-white/30">Nothing more.</span>
           </h2>
-
-          {/* Toggle */}
-          <div className="mt-8 inline-flex items-center gap-3 p-1 bg-white/[0.03] border border-white/[0.06] rounded-full">
-            <button
-              onClick={() => setYearly(false)}
-              className={`px-5 py-1.5 rounded-full text-sm font-medium transition-all ${!yearly ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/60'}`}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setYearly(true)}
-              className={`flex items-center gap-2 px-5 py-1.5 rounded-full text-sm font-medium transition-all ${yearly ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/60'}`}
-            >
-              Yearly
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-semibold">−25%</span>
-            </button>
-          </div>
+          <p className="mt-4 text-white/40 text-sm max-w-sm mx-auto">
+            No subscriptions. Paid credits never expire — buy once, use whenever your next project is ready.
+          </p>
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-5">
@@ -123,65 +141,76 @@ export default function PricingSection() {
 
               <div className="flex items-center gap-3 mb-5">
                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${plan.highlight ? 'bg-violet-500/20' : 'bg-white/[0.04]'}`}>
-                  <plan.icon className={`w-4.5 h-4.5 ${plan.highlight ? 'text-violet-400' : 'text-white/50'}`} style={{ width: '18px', height: '18px' }} />
+                  <plan.icon
+                    className={`${plan.highlight ? 'text-violet-400' : 'text-white/50'}`}
+                    style={{ width: '18px', height: '18px' }}
+                  />
                 </div>
                 <h3 className="text-white font-semibold">{plan.name}</h3>
               </div>
 
-              <div className="mb-3">
-                {plan.price.monthly === null ? (
-                  <span className="text-4xl font-bold text-white">Custom</span>
-                ) : plan.price.monthly === 0 ? (
-                  <span className="text-4xl font-bold text-white">Free</span>
-                ) : (
-                  <div className="flex items-end gap-1.5">
-                    <span className="text-4xl font-bold text-white">
-                      ${yearly ? plan.price.yearly : plan.price.monthly}
-                    </span>
-                    <span className="text-white/30 text-sm mb-1.5">/month</span>
-                  </div>
-                )}
+              <div className="mb-1">
+                <span className="text-4xl font-bold text-white">{plan.price}</span>
               </div>
 
-              <p className="text-white/35 text-sm mb-7">{plan.description}</p>
+              <p className={`text-xs mb-1 font-medium ${plan.highlight ? 'text-violet-400' : 'text-white/40'}`}>
+                {plan.billingNote}
+              </p>
+
+              <p className="text-white/35 text-sm mb-7 mt-2">{plan.description}</p>
 
               <ul className="space-y-3 mb-8 flex-1">
                 {plan.features.map((f) => (
-                  <li key={f} className="flex items-start gap-2.5 text-sm text-white/60">
-                    <Check className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
-                    {f}
-                  </li>
-                ))}
-                {plan.missing.map((f) => (
-                  <li key={f} className="flex items-start gap-2.5 text-sm text-white/20 line-through">
-                    <div className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                    {f}
+                  <li
+                    key={f.text}
+                    className={`flex items-start gap-2.5 text-sm ${f.included ? 'text-white/60' : 'text-white/20'}`}
+                  >
+                    {f.included ? (
+                      <Check className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
+                    ) : (
+                      <Minus className="w-4 h-4 mt-0.5 flex-shrink-0 text-white/20" />
+                    )}
+                    {f.text}
                   </li>
                 ))}
               </ul>
 
-              {plan.name === 'Pro' ? (
-                <a
-                  href={createPageUrl('Checkout') + `?billing=${yearly ? 'yearly' : 'monthly'}`}
-                  className={`w-full py-2.5 rounded-xl text-sm font-medium transition-all duration-300 block text-center ${plan.ctaStyle}`}
+              {plan.name === 'Free' ? (
+                <button
+                  onClick={handleFreeCta}
+                  className={`w-full py-2.5 rounded-xl text-sm font-medium transition-all duration-300 text-center cursor-pointer ${plan.ctaStyle}`}
                 >
                   {plan.cta}
-                </a>
-              ) : plan.name === 'Enterprise' ? (
-                <a
-                  href={createPageUrl('Contact')}
-                  className={`w-full py-2.5 rounded-xl text-sm font-medium transition-all duration-300 block text-center ${plan.ctaStyle}`}
-                >
-                  {plan.cta}
-                </a>
+                </button>
               ) : (
-                <button className={`w-full py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ${plan.ctaStyle}`}>
-                  {plan.cta}
+                <button
+                  onClick={() => handlePurchase(plan.name.toLowerCase() as 'core' | 'pro')}
+                  disabled={purchasingPlan !== null}
+                  className={`w-full py-2.5 rounded-xl text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed ${plan.ctaStyle}`}
+                >
+                  {purchasingPlan === plan.name.toLowerCase() ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Redirecting...
+                    </>
+                  ) : (
+                    plan.cta
+                  )}
                 </button>
               )}
             </motion.div>
           ))}
         </div>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="text-center text-white/20 text-xs mt-8"
+        >
+          1 credit = 1 generation. LinkedIn, README, and Reddit are billed separately.
+        </motion.p>
       </div>
     </section>
   );

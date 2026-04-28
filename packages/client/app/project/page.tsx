@@ -1,16 +1,19 @@
 'use client'
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPageUrl } from '@/utils';
 import {
   Code2, ArrowLeft, RefreshCw, Copy, Check, Linkedin,
-  FileText, Sparkles, ChevronDown, Wand2, Download, Share2, LayoutDashboard
+  FileText, Sparkles, ChevronDown, Wand2, Download, Share2, Zap
 } from 'lucide-react';
 import RecentProjects from '../components/project/RecentProjects';
 import RedditTab from '../components/project/RedditTab';
+import ProfileMenu from '../components/ProfileMenu';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import type { Session } from '@supabase/supabase-js';
 
 type Tab = 'linkedin' | 'readme' | 'reddit';
 
@@ -54,11 +57,6 @@ interface RedditPost {
   subreddits: { name: string; members: number; reason?: string }[];
 }
 
-interface RecentRepo {
-  url: string;
-  addedAt: number;
-}
-
 const TONES: Tone[] = [
   'Professional',
   'Casual',
@@ -81,7 +79,7 @@ const LANGUAGES: Language[] = [
   'German'
 ];
 
-export default function Project() {
+function ProjectContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const repoUrl = searchParams.get("repo") || '';
@@ -90,7 +88,9 @@ export default function Project() {
   const [linkedinPost, setLinkedinPost] = useState('');
   const [language, setLanguage] = useState<Language>('English');
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ id: string } | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [balance, setBalance] = useState<number | null>(null);
   const [readme, setReadme] = useState('');
   const [redditPost, setRedditPost] = useState<RedditPost | null>(null);
   const [loadingTab, setLoadingTab] = useState<Tab | null>(null);
@@ -102,13 +102,26 @@ export default function Project() {
 
   useEffect(() => {
     async function getUser() {
-      const { data } = await supabase.auth.getUser();
+      const [{ data }, { data: sessionData }] = await Promise.all([
+        supabase.auth.getUser(),
+        supabase.auth.getSession(),
+      ]);
       setUser(data.user);
+      setSession(sessionData.session);
+
+      if (data.user) {
+        const { data: creditData } = await supabase
+          .from('user_credits')
+          .select('balance')
+          .eq('user_id', data.user.id)
+          .single();
+        if (creditData) setBalance((creditData as { balance: number }).balance);
+      }
     }
 
     getUser();
   }, []);
-  
+
   // Read query params (from modal) and apply them to initial state
   useEffect(() => {
     const typeParam = searchParams.get('type');
@@ -132,12 +145,11 @@ export default function Project() {
       setLanguage(langParam as Language);
     }
   }, [searchParams]);
-  const generateTab = async (tab: Tab) => {
-    if (!user) {
-      return;
-    }
 
+  const generateTab = async (tab: Tab) => {
+    if (!user) return;
     if (!repoUrl) return;
+    if (balance === 0) return;
     setLoadingTab(tab);
 
     try {
@@ -150,17 +162,19 @@ export default function Project() {
         });
 
         setLinkedinPost(result.content);
+        await fetchBalance(user.id);
 
         await saveProject({
           repoUrl,
           repoName,
           linkedinPost: result.content
-        })
+        });
       }
 
       if (tab === 'readme') {
         const result = await generateReadme({ repoUrl });
         setReadme(result.content);
+        await fetchBalance(user.id);
 
         await saveProject({
           repoUrl,
@@ -170,14 +184,33 @@ export default function Project() {
       }
 
       if (tab === 'reddit') {
+        const { data: { session } } = await supabase.auth.getSession();
         const res = await fetch('http://localhost:3001/api/generateReddit', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
           body: JSON.stringify({ repoUrl, language }),
         });
+
+        if (res.status === 401) {
+          router.push('/auth');
+          setLoadingTab(null);
+          return;
+        }
+
+        if (res.status === 402) {
+          toast.error("You're out of credits.");
+          router.push('/#pricing');
+          setLoadingTab(null);
+          return;
+        }
+
         if (!res.ok) throw new Error('Failed to generate Reddit post');
         const data: RedditPost = await res.json();
         setRedditPost(data);
+        await fetchBalance(user.id);
         await saveProject({ repoUrl, repoName, redditPost: data });
       }
 
@@ -195,7 +228,6 @@ export default function Project() {
       const exists = await loadProject(repoUrl);
 
       if (!exists) {
-        // generate the currently active tab (may have been set from query params)
         generateTab(activeTab);
       }
     }
@@ -204,11 +236,26 @@ export default function Project() {
   }, [repoUrl, user, activeTab]);
 
   async function generateLinkedinPost(data: GenerateLinkedinRequest): Promise<GenerateResponse> {
+    const { data: { session } } = await supabase.auth.getSession();
     const res = await fetch('http://localhost:3001/api/generatePost', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session?.access_token}`,
+      },
       body: JSON.stringify(data),
     });
+
+    if (res.status === 401) {
+      router.push('/auth');
+      throw new Error('Unauthorized');
+    }
+
+    if (res.status === 402) {
+      toast.error("You're out of credits.");
+      router.push('/#pricing');
+      throw new Error('Insufficient credits');
+    }
 
     if (!res.ok) {
       throw new Error('Failed to generate LinkedIn post');
@@ -231,10 +278,15 @@ export default function Project() {
       .single();
 
     if (data) {
-      setLinkedinPost(data.linkedin_post || '');
-      setReadme(data.readme || '');
-      if (data.reddit_post) {
-        try { setRedditPost(JSON.parse(data.reddit_post)); } catch {}
+      const project = data as {
+        linkedin_post?: string;
+        readme?: string;
+        reddit_post?: string;
+      };
+      setLinkedinPost(project.linkedin_post || '');
+      setReadme(project.readme || '');
+      if (project.reddit_post) {
+        try { setRedditPost(JSON.parse(project.reddit_post)); } catch {}
       }
       return true;
     }
@@ -243,11 +295,26 @@ export default function Project() {
   }
 
   async function generateReadme(data: GenerateReadmeRequest): Promise<GenerateResponse> {
+    const { data: { session } } = await supabase.auth.getSession();
     const res = await fetch('http://localhost:3001/api/generateREADME', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session?.access_token}`,
+      },
       body: JSON.stringify(data),
     });
+
+    if (res.status === 401) {
+      router.push('/auth');
+      throw new Error('Unauthorized');
+    }
+
+    if (res.status === 402) {
+      toast.error("You're out of credits.");
+      router.push('/#pricing');
+      throw new Error('Insufficient credits');
+    }
 
     if (!res.ok) {
       throw new Error('Failed to generate README');
@@ -276,6 +343,15 @@ export default function Project() {
       });
   }
 
+  async function fetchBalance(userId: string) {
+    const { data } = await supabase
+      .from('user_credits')
+      .select('balance')
+      .eq('user_id', userId)
+      .single();
+    if (data) setBalance((data as { balance: number }).balance);
+  }
+
   const handleCopy = () => {
     const content = activeTab === 'linkedin' ? linkedinPost : readme;
     navigator.clipboard.writeText(content);
@@ -300,6 +376,7 @@ export default function Project() {
   const hasContent = activeTab === 'linkedin' ? !!linkedinPost : activeTab === 'readme' ? !!readme : !!redditPost;
   const isLoadingCurrent = loadingTab === activeTab;
   const isReddit = activeTab === 'reddit';
+  const outOfCredits = balance === 0;
 
   const handleTabChange = (tab: Tab) => {
     setActiveTab(tab);
@@ -331,12 +408,33 @@ export default function Project() {
             </a>
           </div>
 
-          {repoName && (
-            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06]">
-              <Code2 className="w-3.5 h-3.5 text-white/30" />
-              <span className="text-white/40 text-xs font-mono truncate max-w-[300px]">{repoName}</span>
-            </div>
-          )}
+          <div className="flex items-center gap-4">
+            {repoName && (
+              <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+                <Code2 className="w-3.5 h-3.5 text-white/30" />
+                <span className="text-white/40 text-xs font-mono truncate max-w-[300px]">{repoName}</span>
+              </div>
+            )}
+            <a
+              href="/#pricing"
+              className={`text-xs font-medium transition-colors ${
+                balance === null
+                  ? 'text-white/30'
+                  : balance === 0
+                  ? 'text-red-400'
+                  : balance <= 3
+                  ? 'text-amber-400'
+                  : 'text-white/35'
+              }`}
+            >
+              {balance === null
+                ? '⚡ — credits'
+                : balance === 0
+                ? '⚡ No credits'
+                : `⚡ ${balance} credits`}
+            </a>
+            <ProfileMenu session={session} balance={balance} />
+          </div>
         </div>
       </nav>
 
@@ -437,11 +535,25 @@ export default function Project() {
               </div>
             )}
 
-            {/* Regenerate */}
+            {/* Credit balance */}
+            {balance !== null && (
+              <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-medium ${
+                balance === 0
+                  ? 'border-red-500/20 bg-red-500/5 text-red-400'
+                  : balance <= 3
+                  ? 'border-amber-500/20 bg-amber-500/5 text-amber-400'
+                  : 'border-white/[0.06] bg-white/[0.02] text-white/40'
+              }`}>
+                <Zap className="w-3.5 h-3.5 flex-shrink-0" />
+                <span>{balance} credit{balance !== 1 ? 's' : ''} remaining</span>
+              </div>
+            )}
+
+            {/* Regenerate / No credits */}
             <button
               onClick={() => generateTab(activeTab)}
-              disabled={isLoadingCurrent}
-              className={`w-full flex items-center cursor-pointer justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-50 ${
+              disabled={isLoadingCurrent || outOfCredits}
+              className={`w-full flex items-center cursor-pointer justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                 isReddit
                   ? 'bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/20 text-orange-300'
                   : 'bg-violet-600/20 hover:bg-violet-600/30 border border-violet-500/20 text-violet-300'
@@ -454,14 +566,17 @@ export default function Project() {
               )}
               {isLoadingCurrent ? 'Generating...' : hasContent ? 'Regenerate' : 'Generate'}
             </button>
+            {outOfCredits && (
+              <p className="text-xs text-white/40 text-center">
+                You&apos;re out of credits.{' '}
+                <a href="/#pricing" className="text-violet-400 hover:text-violet-300 transition-colors">
+                  Get more →
+                </a>
+              </p>
+            )}
 
             <RecentProjects currentRepo={repoUrl} />
-
-            
-            
           </div>
-
-          
 
           {/* Main content */}
           <div className="min-w-0">
@@ -595,5 +710,13 @@ export default function Project() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Project() {
+  return (
+    <Suspense fallback={null}>
+      <ProjectContent />
+    </Suspense>
   );
 }

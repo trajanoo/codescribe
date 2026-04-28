@@ -1,17 +1,23 @@
-import express from 'express';
-import generateRoutes from './routes/generate.ts'
-import { Router } from 'express';
 import dotenv from 'dotenv';
-import cors from 'cors';
-
 dotenv.config();
+import express from 'express';
+
+import cors from 'cors';
+import generateRoutes from './routes/generate.ts';
+import paymentsRouter, { webhookHandler } from './routes/payments.ts';
+import './jobs/resetCredits.ts';
+
 const app = express();
 
 app.use(cors());
-app.use(express.json());
-app.use("/api", generateRoutes);
 
+// Must be registered BEFORE express.json() so the raw body is preserved for Stripe
+app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), webhookHandler);
+
+app.use(express.json());
+app.use('/api', generateRoutes);
+app.use('/api/payments', paymentsRouter);
 
 app.listen(3001, () => {
-    console.log("server listening on 3001 port.")
-})
+    console.log('server listening on 3001 port.');
+});

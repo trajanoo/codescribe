@@ -1,14 +1,15 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { Code2, ArrowLeft, Github, Clock, Trash2, ExternalLink, FolderOpen, Plus } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { supabase } from '@/lib/supabase';
-import { Timestamp } from 'next/dist/server/lib/cache-handlers/types';
-import { sup } from 'framer-motion/client';
 import { toast } from 'sonner';
 import GenerateModal from '../components/project/GenerateModal';
+import ProfileMenu from '../components/ProfileMenu';
+import { useSearchParams, useRouter } from 'next/navigation';
+import type { Session } from '@supabase/supabase-js';
 
 interface Project {
     repo_url: string
@@ -24,41 +25,69 @@ const formatDate = (date: string) => {
         month: 'short',
         day: 'numeric',
         year: 'numeric'
-    })  
+    })
 };
 
 function isValidGithubRepo(url: string) {
     return /^https:\/\/github\.com\/[^\/]+\/[^\/]+\/?$/.test(url);
 }
 
-export default function Dashboard() {
+function DashboardContent() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const [projects, setProjects] = useState<Project[]>([]);
     const [newUrl, setNewUrl] = useState('');
     const [modalIsOpen, setModalIsOpen] = useState(false);
+    const [balance, setBalance] = useState<number | null>(null);
+    const [session, setSession] = useState<Session | null>(null);
 
     useEffect(() => {
-        async function fetchProjects() {
-            const { data: userData } = await supabase.auth.getUser();
-            const user = userData.user
+        async function fetchData() {
+            const [{ data: userData }, { data: sessionData }] = await Promise.all([
+                supabase.auth.getUser(),
+                supabase.auth.getSession(),
+            ]);
+            const user = userData.user;
+            setSession(sessionData.session);
 
             if (!user) return;
 
-            const { data, error } = await supabase
-                .from("projects")
-                .select("repo_url, created_at")
-                .eq("user_id", user.id)
-                .order("created_at", { ascending: false })
+            const [projectsResult, creditsResult] = await Promise.all([
+                supabase
+                    .from("projects")
+                    .select("repo_url, created_at")
+                    .eq("user_id", user.id)
+                    .order("created_at", { ascending: false }),
+                supabase
+                    .from("user_credits")
+                    .select("balance")
+                    .eq("user_id", user.id)
+                    .single(),
+            ]);
 
-            if (error) {
-                console.error(error)
-                return
+            if (projectsResult.error) {
+                console.error(projectsResult.error);
+            } else if (projectsResult.data) {
+                setProjects(projectsResult.data);
             }
 
-            if (data) setProjects(data);
+            if (creditsResult.data) {
+                setBalance((creditsResult.data as { balance: number }).balance);
+            }
         }
-        fetchProjects();
-
+        fetchData();
     }, []);
+
+    // Handle ?payment=success
+    useEffect(() => {
+        if (searchParams.get('payment') === 'success') {
+            toast.success('Credits added to your account!');
+            const params = new URLSearchParams(searchParams.toString());
+            params.delete('payment');
+            const newQuery = params.toString();
+            router.replace(newQuery ? `/dashboard?${newQuery}` : '/dashboard');
+        }
+    }, [searchParams, router]);
 
     const handleDelete = async (url: string) => {
         const { data: userData } = await supabase.auth.getUser();
@@ -109,6 +138,28 @@ export default function Dashboard() {
                         <a href={createPageUrl('Home')} className="flex items-center gap-2">
                             <span className="text-white/80 font-medium text-sm">codescribe<span className="text-violet-400">.ink</span></span>
                         </a>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        <a
+                            href="/#pricing"
+                            className={`text-xs font-medium transition-colors ${
+                                balance === null
+                                    ? 'text-white/30'
+                                    : balance === 0
+                                    ? 'text-red-400'
+                                    : balance <= 3
+                                    ? 'text-amber-400'
+                                    : 'text-white/35'
+                            }`}
+                        >
+                            {balance === null
+                                ? '⚡ — credits'
+                                : balance === 0
+                                ? '⚡ No credits'
+                                : `⚡ ${balance} credits`}
+                        </a>
+                        <ProfileMenu session={session} balance={balance} />
                     </div>
                 </div>
             </nav>
@@ -208,5 +259,13 @@ export default function Dashboard() {
             </div>
             { modalIsOpen && <GenerateModal repoUrl={newUrl} onClose={() => setModalIsOpen(false)} /> }
         </div>
+    );
+}
+
+export default function Dashboard() {
+    return (
+        <Suspense fallback={null}>
+            <DashboardContent />
+        </Suspense>
     );
 }
