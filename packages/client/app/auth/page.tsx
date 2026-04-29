@@ -163,10 +163,9 @@ export default function Auth() {
           <div className="lg:hidden mb-12 text-center">
             <a href="/" className="inline-flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center">
-                <Code2 className="w-4.5 h-4.5 text-white" />
               </div>
               <span className="text-white font-semibold text-lg tracking-tight">
-                codescribe<span className="text-violet-400">.io</span>
+                codescribe<span className="text-violet-400">.ink</span>
               </span>
             </a>
           </div>
@@ -313,11 +312,11 @@ export default function Auth() {
             {/* Terms */}
             <p className="text-center text-xs text-white/20 leading-relaxed">
               By continuing, you agree to our{' '}
-              <a href="#" className="text-white/40 hover:text-white/60 transition-colors">
+              <a href="terms" className="text-white/40 hover:text-white/60 transition-colors">
                 Terms
               </a>{' '}
               and{' '}
-              <a href="#" className="text-white/40 hover:text-white/60 transition-colors">
+              <a href="privacy" className="text-white/40 hover:text-white/60 transition-colors">
                 Privacy Policy
               </a>
             </p>
