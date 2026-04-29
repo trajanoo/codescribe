@@ -185,7 +185,7 @@ function ProjectContent() {
 
       if (tab === 'reddit') {
         const { data: { session } } = await supabase.auth.getSession();
-        const res = await fetch('http://localhost:3001/api/generateReddit', {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/generateReddit`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -237,7 +237,7 @@ function ProjectContent() {
 
   async function generateLinkedinPost(data: GenerateLinkedinRequest): Promise<GenerateResponse> {
     const { data: { session } } = await supabase.auth.getSession();
-    const res = await fetch('http://localhost:3001/api/generatePost', {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/generatePost`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -296,7 +296,7 @@ function ProjectContent() {
 
   async function generateReadme(data: GenerateReadmeRequest): Promise<GenerateResponse> {
     const { data: { session } } = await supabase.auth.getSession();
-    const res = await fetch('http://localhost:3001/api/generateREADME', {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/generateREADME`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

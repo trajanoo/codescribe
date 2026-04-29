@@ -104,7 +104,7 @@ export default function Auth() {
         <div>
           <a href="/" className="inline-flex items-center gap-2.5 group">
             <span className="text-white font-semibold text-lg tracking-tight">
-              codescribe<span className="text-violet-400">.io</span>
+              codescribe<span className="text-violet-400">.ink</span>
             </span>
           </a>
         </div>
