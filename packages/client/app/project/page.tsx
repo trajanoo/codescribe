@@ -275,7 +275,7 @@ function ProjectContent() {
       .select('*')
       .eq('user_id', user.id)
       .eq('repo_url', repoUrl)
-      .single();
+      .maybeSingle();
 
     if (data) {
       const project = data as {
