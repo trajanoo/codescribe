@@ -18,6 +18,7 @@ app.use(express.json());
 app.use('/api', generateRoutes);
 app.use('/api/payments', paymentsRouter);
 
-app.listen(3001, () => {
+const PORT = process.env.PORT || 3001
+app.listen(PORT, () => {
     console.log('server listening on 3001 port.');
 });
