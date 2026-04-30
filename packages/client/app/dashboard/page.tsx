@@ -62,7 +62,7 @@ function DashboardContent() {
                     .from("user_credits")
                     .select("balance")
                     .eq("user_id", user.id)
-                    .single(),
+                    .maybeSingle(),
             ]);
 
             if (projectsResult.error) {

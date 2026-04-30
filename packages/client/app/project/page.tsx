@@ -114,7 +114,7 @@ function ProjectContent() {
           .from('user_credits')
           .select('balance')
           .eq('user_id', data.user.id)
-          .single();
+          .maybeSingle();
         if (creditData) setBalance((creditData as { balance: number }).balance);
       }
     }
@@ -348,7 +348,7 @@ function ProjectContent() {
       .from('user_credits')
       .select('balance')
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
     if (data) setBalance((data as { balance: number }).balance);
   }
 
