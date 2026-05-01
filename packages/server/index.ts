@@ -15,7 +15,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+app.options('/{*path}', cors(corsOptions));
 
 app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), webhookHandler);
 
