@@ -1,2 +1,5 @@
+[build]
+buildCommand = ""
+
 [deploy]
 startCommand = "bun index.ts"
