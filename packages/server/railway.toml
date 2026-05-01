@@ -1,5 +1,5 @@
 [build]
-buildCommand = ""
+buildCommand = "echo ok"
 
 [deploy]
 startCommand = "bun index.ts"
