@@ -18,8 +18,8 @@ router.post('/checkout', async (req: Request, res: Response) => {
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: 'http://localhost:3000/dashboard?payment=success',
-      cancel_url: 'http://localhost:3000/#pricing',
+      success_url: 'https://codescribe-client.vercel.app/dashboard?payment=success',
+      cancel_url: 'https://codescribe-client.vercel.app/#pricing',
       metadata: { userId, plan },
     });
 
@@ -61,8 +61,6 @@ try {
       .select('balance')
       .eq('user_id', userId)
       .single();
-
-    const currentBalance = (creditRow as { balance: number } | null)?.balance ?? 0;
 
     await supabaseAdmin
   .from('user_credits')
