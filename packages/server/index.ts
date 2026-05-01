@@ -9,7 +9,11 @@ import './jobs/resetCredits.ts';
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+    origin: 'https://codescribe-client.vercel.app',
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }));
 
 // Must be registered BEFORE express.json() so the raw body is preserved for Stripe
 app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), webhookHandler);
