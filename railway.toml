@@ -1,2 +1,2 @@
 [deploy]
-startCommand = "bun packages/server/index.ts"
+startCommand = "bun index.ts"
