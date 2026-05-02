@@ -11,6 +11,8 @@ export default function Auth() {
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [focusedField, setFocusedField] = useState<'email' | 'password' | null>(null);
+    const [isForgotPassword, setIsForgotPassword] = useState<boolean>(false);
+    const [forgotEmailSent, setForgotEmailSent] = useState<boolean>(false);
 
     useEffect(() => {
         async function checkUser() {
@@ -61,6 +63,14 @@ export default function Auth() {
         }
       });
     }
+
+  const handleForgotPassword = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + '/auth/reset'
+    });
+    setForgotEmailSent(true);
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -179,15 +189,15 @@ export default function Auth() {
             {/* Header */}
             <div className="text-center lg:text-left">
               <h2 className="text-3xl font-bold text-white tracking-tight mb-2">
-                {isLogin ? 'Welcome back' : 'Get started'}
+                {isForgotPassword ? 'Reset Password' : (isLogin ? 'Welcome back' : 'Get started')}
               </h2>
               <p className="text-white/40 text-sm">
-                {isLogin ? 'Continue to your dashboard' : 'Create your account in seconds'}
+                {isForgotPassword ? 'Enter your email to receive a reset link' : (isLogin ? 'Continue to your dashboard' : 'Create your account in seconds')}
               </p>
             </div>
 
             {/* GitHub Button */}
-            <motion.button
+            {!isForgotPassword && <motion.button
               onClick={loginWithGithub}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
@@ -199,29 +209,26 @@ export default function Auth() {
                 <span className="text-white cursor-pointer font-medium">Continue with GitHub</span>
               </div>
               <div className="absolute inset-0 border border-white/10 group-hover:border-white/20 rounded-2xl transition-colors" />
-            </motion.button>
+            </motion.button>}
 
             {/* Divider */}
-            <div className="relative">
+            {!isForgotPassword && <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
               </div>
               <div className="relative flex justify-center">
                 <span className="px-4 text-xs text-white/30 bg-[#07070f]">or</span>
               </div>
-            </div>
+            </div>}
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={isLogin ? 'login' : 'signup'}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                  className="space-y-5"
-                >
+            {isForgotPassword ? (
+              forgotEmailSent ? (
+                <p className="text-white/60 text-sm text-center py-4">
+                  Check your email for a password reset link.
+                </p>
+              ) : (
+                <form onSubmit={handleForgotPassword} className="space-y-5">
                   <div className="space-y-2">
                     <label className="text-xs font-medium text-white/60 tracking-wide uppercase">
                       Email
@@ -245,69 +252,133 @@ export default function Auth() {
                       )}
                     </div>
                   </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
+                  <motion.button
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    type="submit"
+                    className="relative w-full h-12 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 text-white font-medium overflow-hidden group mt-8"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <span className="relative cursor-pointer flex items-center justify-center gap-2">Send reset link</span>
+                  </motion.button>
+                </form>
+              )
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={isLogin ? 'login' : 'signup'}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                    className="space-y-5"
+                  >
+                    <div className="space-y-2">
                       <label className="text-xs font-medium text-white/60 tracking-wide uppercase">
-                        Password
+                        Email
                       </label>
-                      {isLogin && (
-                        <a href="#" className="text-xs text-violet-400 hover:text-violet-300 transition-colors">
-                          Forgot?
-                        </a>
-                      )}
-                    </div>
-                    <div className="relative">
-                      <input
-                        type="password"
-                        value={password}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-                        onFocus={() => setFocusedField('password')}
-                        onBlur={() => setFocusedField(null)}
-                        placeholder="••••••••••"
-                        className="w-full h-12 px-4 bg-white/[0.02] border border-white/10 rounded-xl text-white placeholder:text-white/20 focus:border-violet-500/50 focus:outline-none transition-all"
-                      />
-                      {focusedField === 'password' && (
-                        <motion.div
-                          layoutId="focus-ring"
-                          className="absolute inset-0 border-2 border-violet-500/30 rounded-xl pointer-events-none"
-                          transition={{ type: "spring", bounce: 0.2, duration: 0.3 }}
+                      <div className="relative">
+                        <input
+                          type="email"
+                          value={email}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                          onFocus={() => setFocusedField('email')}
+                          onBlur={() => setFocusedField(null)}
+                          placeholder="you@example.com"
+                          className="w-full h-12 px-4 bg-white/[0.02] border border-white/10 rounded-xl text-white placeholder:text-white/20 focus:border-violet-500/50 focus:outline-none transition-all"
                         />
-                      )}
+                        {focusedField === 'email' && (
+                          <motion.div
+                            layoutId="focus-ring"
+                            className="absolute inset-0 border-2 border-violet-500/30 rounded-xl pointer-events-none"
+                            transition={{ type: "spring", bounce: 0.2, duration: 0.3 }}
+                          />
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  { error ? (
-                    <div>Invalid email or password.</div>
-                  ) : null }
-                </motion.div>
-              </AnimatePresence>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-medium text-white/60 tracking-wide uppercase">
+                          Password
+                        </label>
+                        {isLogin && (
+                          <button
+                            type="button"
+                            onClick={() => setIsForgotPassword(true)}
+                            className="text-xs cursor-pointer text-violet-400 hover:text-violet-300 transition-colors"
+                          >
+                            Forgot?
+                          </button>
+                        )}
+                      </div>
+                      <div className="relative">
+                        <input
+                          type="password"
+                          value={password}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                          onFocus={() => setFocusedField('password')}
+                          onBlur={() => setFocusedField(null)}
+                          placeholder="••••••••••"
+                          className="w-full h-12 px-4 bg-white/[0.02] border border-white/10 rounded-xl text-white placeholder:text-white/20 focus:border-violet-500/50 focus:outline-none transition-all"
+                        />
+                        {focusedField === 'password' && (
+                          <motion.div
+                            layoutId="focus-ring"
+                            className="absolute inset-0 border-2 border-violet-500/30 rounded-xl pointer-events-none"
+                            transition={{ type: "spring", bounce: 0.2, duration: 0.3 }}
+                          />
+                        )}
+                      </div>
+                    </div>
 
-              <motion.button
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-                type="submit"
-                className="relative w-full h-12 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 text-white font-medium overflow-hidden group mt-8"
-              >
-                <div className="absolute cursor-pointer inset-0 bg-gradient-to-r from-violet-500 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <span className="relative cursor-pointer flex items-center justify-center gap-2">
-                  {isLogin ? 'Sign In' : 'Create Account'}
-                </span>
-              </motion.button>
-            </form>
+                    { error ? (
+                      <div>Invalid email or password.</div>
+                    ) : null }
+                  </motion.div>
+                </AnimatePresence>
+
+                <motion.button
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                  type="submit"
+                  className="relative w-full h-12 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 text-white font-medium overflow-hidden group mt-8"
+                >
+                  <div className="absolute cursor-pointer inset-0 bg-gradient-to-r from-violet-500 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <span className="relative cursor-pointer flex items-center justify-center gap-2">
+                    {isLogin ? 'Sign In' : 'Create Account'}
+                  </span>
+                </motion.button>
+              </form>
+            )}
 
             {/* Toggle */}
-            <div className="text-center">
-              <button
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-sm text-white/40"
-              >
-                {isLogin ? "Don't have an account? " : 'Already have an account? '}
-                <span className="text-violet-400 font-medium hover:text-violet-200 cursor-pointer transition-colors">
-                  {isLogin ? 'Sign up' : 'Log in'}
-                </span>
-              </button>
-            </div>
+            {isForgotPassword ? (
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => { setIsForgotPassword(false); setForgotEmailSent(false); }}
+                  className="text-sm text-white/40"
+                >
+                  <span className="text-violet-400 font-medium hover:text-violet-200 cursor-pointer transition-colors">
+                    Back to sign in
+                  </span>
+                </button>
+              </div>
+            ) : (
+              <div className="text-center">
+                <button
+                  onClick={() => setIsLogin(!isLogin)}
+                  className="text-sm text-white/40"
+                >
+                  {isLogin ? "Don't have an account? " : 'Already have an account? '}
+                  <span className="text-violet-400 font-medium hover:text-violet-200 cursor-pointer transition-colors">
+                    {isLogin ? 'Sign up' : 'Log in'}
+                  </span>
+                </button>
+              </div>
+            )}
 
             {/* Terms */}
             <p className="text-center text-xs text-white/20 leading-relaxed">
