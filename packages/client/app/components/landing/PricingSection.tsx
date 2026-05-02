@@ -79,7 +79,7 @@ export default function PricingSection() {
 
     setPurchasingPlan(plan);
     try {
-      const res = await fetch('http://localhost:3001/api/payments/checkout', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/payments/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan, userId: session.user.id }),

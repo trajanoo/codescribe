@@ -81,18 +81,6 @@ export default function CTAFooter() {
               </span>
             </div>
 
-            <div className="flex items-center gap-6">
-              <a href="#" className="text-white/25 hover:text-white/50 transition-colors">
-                <Github className="w-4 h-4" />
-              </a>
-              <a href="#" className="text-white/25 hover:text-white/50 transition-colors">
-                <Twitter className="w-4 h-4" />
-              </a>
-              <a href="#" className="text-white/25 hover:text-white/50 transition-colors">
-                <Linkedin className="w-4 h-4" />
-              </a>
-            </div>
-
             <p className="text-xs text-white/15">
               © 2026 codescribe.ink. All rights reserved.
             </p>
