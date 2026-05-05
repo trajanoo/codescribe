@@ -8,24 +8,23 @@ const steps = [
   {
     num: '01',
     icon: Link2,
-    title: 'Paste your repo link',
-    description: 'Drop in any public GitHub repository URL. We handle the rest — analyzing your code, structure, and dependencies.',
+    title: 'Paste your GitHub URL',
+    description: 'We scan your code, dependencies, and structure. No setup, no config.',
     accent: 'from-violet-500 to-blue-500',
     glow: 'bg-violet-500/10',
   },
   {
     num: '02',
     icon: Cpu,
-    title: 'AI generates content',
-    description: 'Our AI reads your codebase and generates a polished README and an engaging LinkedIn post tailored to your project.',
-    accent: 'from-blue-500 to-cyan-500',
+    title: 'AI writes. You review.',
+    description: 'Get a README with real context from your codebase — not a template. Get a LinkedIn post engineered for engagement, not just visibility.',
     glow: 'bg-blue-500/10',
   },
   {
     num: '03',
     icon: PenLine,
-    title: 'Edit, refine, publish',
-    description: 'Fine-tune the tone, adjust details, or ask AI to rewrite. When it\'s perfect, copy and share it with the world.',
+    title: 'One click to publish.',
+    description: 'Edit inline, adjust tone, copy to clipboard or download. Done.',
     accent: 'from-cyan-500 to-emerald-500',
     glow: 'bg-emerald-500/10',
   },
@@ -50,7 +49,7 @@ export default function HowItWorks() {
             Three steps. Zero friction.
           </h2>
           <p className="mt-5 text-white/35 text-lg max-w-xl mx-auto font-light">
-            From repository to professional content — the entire workflow takes under a minute.
+            From repository to professional content. The entire workflow takes under a minute.
           </p>
         </motion.div>
 

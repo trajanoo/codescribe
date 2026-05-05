@@ -87,10 +87,10 @@ export default function HeroSection() {
             transition={{ duration: 0.7, delay: 0.1 }}
             className="text-5xl md:text-7xl lg:text-8xl font-bold text-white tracking-tight leading-[0.95]"
           >
-            Your code
+            Ship code.
             <br />
             <span className="bg-gradient-to-r from-violet-400 via-blue-400 to-violet-400 bg-clip-text text-transparent">
-              deserves to shine
+              Skip the docs.
             </span>
           </motion.h1>
 
@@ -100,8 +100,8 @@ export default function HeroSection() {
             transition={{ duration: 0.6, delay: 0.25 }}
             className="mt-7 text-lg md:text-xl text-white/40 max-w-2xl mx-auto leading-relaxed font-light"
           >
-            Turn any GitHub repository into a professional README and
-            engaging LinkedIn post — in seconds, not hours.
+            Paste a GitHub link. Get a post and a README. It's that simple.
+
           </motion.p>
 
           <motion.div
@@ -142,7 +142,7 @@ export default function HeroSection() {
                 href="#how-it-works"
                 className="flex items-center gap-2 text-sm text-white/40 hover:text-white/60 transition-colors"
               >
-                See how it works
+                See an example
               </a>
               <span className="hidden sm:block text-white/20">•</span>
               <span className="text-sm text-white/20">Try it for free</span>

@@ -110,12 +110,12 @@ export default function PricingSection() {
         >
           <p className="text-xs font-semibold tracking-[0.2em] text-violet-400/80 uppercase mb-4">Pricing</p>
           <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
-            Pay for what you use.
+          Credits that don't expire.
             <br />
-            <span className="text-white/30">Nothing more.</span>
+            <span className="text-white/30">Pay once. Use whenever.</span>
           </h2>
           <p className="mt-4 text-white/40 text-sm max-w-sm mx-auto">
-            No subscriptions. Paid credits never expire — buy once, use whenever your next project is ready.
+          No subscriptions. No monthly pressure. Credits are there when you ship your next project.
           </p>
         </motion.div>
 

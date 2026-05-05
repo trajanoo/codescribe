@@ -146,12 +146,18 @@ export default function Auth() {
             className="flex items-center gap-3 text-sm"
           >
             <div className="flex -space-x-2">
+              
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
                   className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-blue-500 border-2 border-[#07070f] flex items-center justify-center text-white text-xs font-medium"
                 >
-                  {String.fromCharCode(64 + i)}
+                  <img
+  key={i}
+  src={`/user${i}.jpg`}
+  alt=""
+  className="w-9 h-9 rounded-full border-2 border-[#07070f] object-cover -ml-2 first:ml-0"
+/>
                 </div>
               ))}
             </div>

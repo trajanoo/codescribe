@@ -6,43 +6,43 @@ import { FileText, Linkedin, Wand2, Languages, Eye, Zap } from 'lucide-react';
 const features = [
   {
     icon: FileText,
-    title: 'AI-Generated READMEs',
-    description: 'Complete documentation with description, tech stack, features, setup instructions, and project goals.',
+    title: 'READMEs that actually reflect your code',
+    description: 'Not generated from a template. Our AI reads your files, dependencies, and structure — and writes documentation that\'s accurate from line one.',
     span: 'md:col-span-2',
     bg: 'bg-gradient-to-br from-violet-500/5 to-transparent',
   },
   {
     icon: Linkedin,
-    title: 'LinkedIn Posts',
-    description: 'Engagement-optimized posts with hooks, storytelling, CTAs, and hashtags.',
+    title: 'LinkedIn posts that get engagement',
+    description: 'Hooks, storytelling, and CTAs built from what your project actually does. Not generic "I built a thing" posts.',
     span: '',
     bg: 'bg-gradient-to-br from-blue-500/5 to-transparent',
   },
   {
     icon: Wand2,
     title: 'Tone Rewriting',
-    description: 'Switch between technical, casual, marketing, or personal tones with one click.',
+    description: 'Switch between technical, casual, and marketing tones. Each rewrite adapts the content — not just swaps a few adjectives.',
     span: '',
     bg: 'bg-gradient-to-br from-emerald-500/5 to-transparent',
   },
   {
     icon: Eye,
-    title: 'Live Preview & Edit',
-    description: 'Inline editor with real-time markdown preview. Full control before publishing.',
+    title: 'Edit before you publish',
+    description: 'Full markdown editor with live preview. You stay in control of the final output.',
     span: 'md:col-span-2',
     bg: 'bg-gradient-to-br from-cyan-500/5 to-transparent',
   },
   {
     icon: Languages,
-    title: 'Multi-format Output',
-    description: 'Get content formatted for GitHub, LinkedIn, and other platforms simultaneously.',
+    title: 'One repo, multiple formats',
+    description: 'README for GitHub. Post for LinkedIn. Coming: Reddit, Twitter thread. Generate once, distribute everywhere.',
     span: '',
     bg: 'bg-gradient-to-br from-orange-500/5 to-transparent',
   },
   {
     icon: Zap,
-    title: 'Instant Generation',
-    description: 'From repo link to polished content in under 30 seconds. No signup required to try.',
+    title: '30-second turnaround',
+    description: 'Paste link. Click generate. Done — before your next coffee sip.',
     span: 'md:col-span-2',
     bg: 'bg-gradient-to-br from-yellow-500/5 to-transparent',
   },
@@ -65,9 +65,9 @@ export default function FeaturesGrid() {
         >
           <p className="text-xs font-semibold tracking-[0.2em] text-violet-400/80 uppercase mb-4">Features</p>
           <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
-            Everything you need,
+          Built differently.
             <br />
-            <span className="text-white/40">nothing you don't</span>
+            <span className="text-white/40">Here's why it works.</span>
           </h2>
         </motion.div>
 

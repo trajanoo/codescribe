@@ -60,7 +60,7 @@ export default function CTAFooter() {
                 onClick={handleStartForFree}
                 className="group flex items-center gap-2.5 px-8 py-4 rounded-full bg-violet-600 hover:bg-violet-500 text-white font-medium text-lg transition-all duration-300 hover:shadow-2xl hover:shadow-violet-500/25 hover:scale-[1.02]"
               >
-                Start for free
+                Generate now
                 <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-0.5" />
               </button>
             </div>
