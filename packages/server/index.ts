@@ -20,7 +20,11 @@ process.on('unhandledRejection', (reason) => {
 const app = express();
 
 const corsOptions = {
-  origin: 'https://codescribe-client.vercel.app',
+  origin: [
+    'https://codescribe.ink',
+    'https://www.codescribe.ink',
+    'http://localhost:3000'
+  ],
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
