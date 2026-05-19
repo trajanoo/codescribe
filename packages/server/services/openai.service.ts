@@ -48,10 +48,10 @@ export async function generatePost(repoData: RepoAnalysis, tone: string = 'Profe
     - Use short paragraphs
     - Explain what the project does
     - Mention technologies if identifiable
-    - Do NOT use markdown formatting. Plain text only, except for line breaks between paragraphs.
+    - Do NOT use markdown formatting. Plain text and emojis only, except for line breaks between paragraphs.
     - End with a call-to-action
     - Keep it around ${wordCount} words - no more ${wordCount} words
-    - End the post with relevant hashtags using the # symbol (e.g. #webdev #opensource). These are LinkedIn hashtags, not markdown headers.
+    
     `;
 
     const response = await client.responses.create({
